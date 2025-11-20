@@ -194,6 +194,10 @@ const ProfileDetails = () => {
     if (raw) setSavedProfile(JSON.parse(raw));
   }, []);
 
+  if (import.meta.env.DEV) {
+    localStorage.clear();
+  }
+
   // =======================================================
 
   return (

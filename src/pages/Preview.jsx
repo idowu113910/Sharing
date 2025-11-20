@@ -163,37 +163,26 @@ const Preview = () => {
         });
         setShareMessage("Shared successfully! ✓");
         setTimeout(() => setShareMessage(""), 2000);
+        return;
       } catch (err) {
-        // User cancelled or an error occurred — fallback to clipboard
-        if (err.name !== "AbortError") {
-          console.error("Error sharing:", err);
-          try {
-            await navigator.clipboard.writeText(profileUrl);
-            setShareMessage("Link copied to clipboard ✓");
-            setTimeout(() => setShareMessage(""), 2000);
-          } catch (copyErr) {
-            console.error("Clipboard error:", copyErr);
-            setShareMessage("Could not copy link");
-            setTimeout(() => setShareMessage(""), 2000);
-          }
-        }
+        // user cancelled or share failed — fall through to copy
+        console.info("Web Share API failed or cancelled:", err);
       }
-    } else {
-      // Fallback for browsers without Web Share API
-      try {
-        await navigator.clipboard.writeText(profileUrl);
-        setShareMessage("Link copied to clipboard ✓");
-        setTimeout(() => setShareMessage(""), 2000);
-      } catch (err) {
-        console.error("Clipboard error:", err);
-        setShareMessage("Could not copy link");
-        setTimeout(() => setShareMessage(""), 2000);
-      }
+    }
+
+    // fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setShareMessage("Link copied to clipboard ✓");
+      setTimeout(() => setShareMessage(""), 2000);
+    } catch (err) {
+      console.error("Clipboard error:", err);
+      setShareMessage("Could not copy link");
+      setTimeout(() => setShareMessage(""), 2000);
     }
   };
 
   // final guard
-
 
   // 3. Use Web Share API if available, otherwise copy to clipboard
 
