@@ -11,7 +11,6 @@ import { GoLink } from "react-icons/go";
 import { FaFacebook } from "react-icons/fa6";
 import { LuLink } from "react-icons/lu";
 
-
 const Preview = () => {
   const navigate = useNavigate();
 
@@ -146,67 +145,7 @@ const Preview = () => {
 
   // Main handler: uses saved profile link if present, otherwise prompts the user
   const handleShareLink = async () => {
-    // 1. prefer a permanently saved link on the profile
-    const savedLink = savedProfile?.shareLink;
-    let shareUrl = savedLink ? normalizeUrl(savedLink) : null;
-
-    // 2. if there's no saved link, ask the user to enter one
-    if (!shareUrl) {
-      // NOTE: prompt() is quick. Replace with a modal/input if you prefer better UX.
-      const rawInput = window.prompt(
-        "Enter the link you want to share (e.g. your custom domain or portfolio URL):",
-        ""
-      );
-      if (!rawInput) {
-        // user cancelled — we could fallback to current page or abort.
-        // You said you want Vercel link available for others; so abort.
-        setShareMessage("Share cancelled");
-        setTimeout(() => setShareMessage(""), 1500);
-        return;
-      }
-
-      const normalized = normalizeUrl(rawInput);
-      if (!normalized) {
-        setShareMessage("Invalid link — please include a valid URL.");
-        setTimeout(() => setShareMessage(""), 2000);
-        return;
-      }
-
-      // Ask user if they'd like to save it permanently on their profile
-      const save = window.confirm(
-        "Save this as your permanent share link? (OK = save, Cancel = share once without saving)"
-      );
-
-      if (save) {
-        const ok = await saveShareLinkToServer(normalized);
-        if (!ok) {
-          // If saving failed, still ask whether to continue with a one-time share
-          const cont = window.confirm(
-            "Could not save link. Continue to share this link just once?"
-          );
-          if (!cont) {
-            setShareMessage("Share cancelled");
-            setTimeout(() => setShareMessage(""), 1500);
-            return;
-          }
-        } else {
-          // update shareUrl to the saved value
-          shareUrl = normalized;
-        }
-      } else {
-        // user chose one-time share
-        shareUrl = normalized;
-      }
-    }
-
-    // final guard
-    if (!shareUrl) {
-      setShareMessage("No link to share");
-      setTimeout(() => setShareMessage(""), 1500);
-      return;
-    }
-
-    // 3. Use Web Share API if available, otherwise copy to clipboard
+    const profileUrl = window.location.href;
     const profileName = `${savedProfile?.firstName || ""} ${
       savedProfile?.lastName || ""
     }`.trim();
@@ -220,25 +159,47 @@ const Preview = () => {
         await navigator.share({
           title: shareTitle,
           text: shareText,
-          url: shareUrl,
+          url: profileUrl,
         });
         setShareMessage("Shared successfully! ✓");
         setTimeout(() => setShareMessage(""), 2000);
       } catch (err) {
-        // user cancelled or another error — fallback to copying
-        console.error("Share failed:", err);
-        await copyToClipboard(shareUrl);
+        // User cancelled or an error occurred — fallback to clipboard
+        if (err.name !== "AbortError") {
+          console.error("Error sharing:", err);
+          try {
+            await navigator.clipboard.writeText(profileUrl);
+            setShareMessage("Link copied to clipboard ✓");
+            setTimeout(() => setShareMessage(""), 2000);
+          } catch (copyErr) {
+            console.error("Clipboard error:", copyErr);
+            setShareMessage("Could not copy link");
+            setTimeout(() => setShareMessage(""), 2000);
+          }
+        }
       }
     } else {
-      // fallback for desktop
-      await copyToClipboard(shareUrl);
+      // Fallback for browsers without Web Share API
+      try {
+        await navigator.clipboard.writeText(profileUrl);
+        setShareMessage("Link copied to clipboard ✓");
+        setTimeout(() => setShareMessage(""), 2000);
+      } catch (err) {
+        console.error("Clipboard error:", err);
+        setShareMessage("Could not copy link");
+        setTimeout(() => setShareMessage(""), 2000);
+      }
     }
   };
+
+  // final guard
+
+
+  // 3. Use Web Share API if available, otherwise copy to clipboard
 
   return (
     <>
       <div className="md:h-[1024px] h-[848px] bg-gray-50 pb-20">
-      
         {/* Blue background */}
         <div className="md:bg-[#633CFF] md:h-[357px] md:rounded-bl-[32px] md:rounded-br-[32px] md:overflow-hidden relative">
           <div className="md:bg-[#633CFF] md:h-[357px] md:rounded-bl-[32px] md:rounded-br-[32px] md:overflow-hidden">
