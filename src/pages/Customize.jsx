@@ -24,14 +24,7 @@ import NavBar from "../components/NavBar";
 import toast from "react-hot-toast";
 
 const Customize = ({ value, onChange, linkId }) => {
-  useEffect(() => {
-    const urlHash = window.location.hash;
-    if (!urlHash) {
-      // only clear session if not visiting a public link
-      localStorage.removeItem("devlinks_profileDetails");
-      localStorage.removeItem("devlinks_savedLinks");
-    }
-  }, []);
+
 
   const navigate = useNavigate();
 
@@ -90,31 +83,31 @@ const Customize = ({ value, onChange, linkId }) => {
   const handleSave = () => {
     setIsSaving(true);
     const newErrors = {};
-
+    // Validate all links
     links.forEach((link) => {
       if (!link.url.trim()) {
         newErrors[link.id] = "Can't be empty";
       } else if (!isValidUrl(link.url)) {
         newErrors[link.id] = "Please check the URL";
       } else if (link.platform === "WhatsApp") {
+        // Extract phone number from WhatsApp URL
         const phoneMatch = link.url.match(/wa\.me\/(\d+)/);
-        if (!phoneMatch || phoneMatch[1].length < 10) {
-          // allow 10+ digits
+        if (!phoneMatch || phoneMatch[1].length < 11) {
           newErrors[link.id] = "Please check the URL";
         }
       }
     });
-
     setErrors(newErrors);
-
+    // Simulate save delay
     setTimeout(() => {
+      // If no errors, save the links
       if (Object.keys(newErrors).length === 0) {
-        setSavedLinks(links); // spreading optional
+        setSavedLinks([...links]);
         localStorage.setItem("devlinks_savedLinks", JSON.stringify(links));
-        toast.success("Links saved successfully!");
+        toast.success("Link created successfully");
       }
       setIsSaving(false);
-    }, 800);
+    }, 800); // 800ms delay for better UX
   };
 
   // Simple URL validation
@@ -345,38 +338,22 @@ const Customize = ({ value, onChange, linkId }) => {
 
       <div
         className={`border-t border-t-[#D9D9D9] w-[343px] md:w-[721px] lg:w-[808px]
-  mx-auto mt-18 lg:mt-0 flex items-center justify-center md:justify-end
-  lg:sticky lg:bottom-0 lg:left-[500px] overflow-hidden lg:z-50
-  lg:bg-white lg:py-4 lg:shadow-[0_-2px_8px_rgba(0,0,0,0.05)]
-  transition-opacity duration-300 
-  ${links.length === 0 ? "opacity-40 pointer-events-none" : "opacity-100"}`}
+        mx-auto mt-18 lg:mt-0 flex items-center justify-center md:justify-end
+        lg:sticky lg:bottom-0 lg:left-[500px] overflow-hidden lg:z-50
+        lg:bg-white lg:py-4 lg:shadow-[0_-2px_8px_rgba(0,0,0,0.05)]
+        transition-opacity duration-300 
+        ${
+          links.length === 0 ? "opacity-40 pointer-events-none" : "opacity-100"
+        }`}
       >
-        <div className="flex gap-4">
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            disabled={isSaving || links.length === 0}
-            className="mt-4 lg:mt-0 w-[311px] md:w-[91px] h-[46px] py-[11px] px-[27px]
-      border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] 
-      hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-
-          {/* Start New Session Button */}
-          <button
-            onClick={() => {
-              localStorage.removeItem("devlinks_profileDetails");
-              localStorage.removeItem("devlinks_savedLinks");
-              window.location.reload(); // refresh page for a clean slate
-            }}
-            className="mt-4 lg:mt-0 w-[311px] md:w-[150px] h-[46px] py-[11px] px-[16px]
-      border-0 rounded-[8px] bg-gray-200 text-gray-800 font-semibold text-[16px] 
-      hover:bg-gray-300 transition-colors"
-          >
-            Start New Session
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={isSaving || links.length === 0}
+          className="mt-4 lg:mt-0 w-[311px] md:w-[91px] h-[46px] py-[11px] px-[27px]
+         border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? "Saving..." : "Save"}
+        </button>
       </div>
 
       {/* iPhone Preview with Overlay */}
