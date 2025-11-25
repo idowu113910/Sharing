@@ -22,6 +22,7 @@ import { GoLink } from "react-icons/go";
 import { FaFacebook } from "react-icons/fa6";
 import { FaArrowRight } from "react-icons/fa";
 import sav from "../assets/succ img.svg";
+import toast from "react-hot-toast";
 
 const ProfileDetails = () => {
   const [firstName, setFirstName] = useState("");
@@ -36,12 +37,13 @@ const ProfileDetails = () => {
     return savedData ? JSON.parse(savedData) : [];
   });
 
+
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       // Add minimum delay to show loading state
       await new Promise((resolve) => setTimeout(resolve, 800)); // 800ms minimum delay
-
       // 1️⃣ Validation
       const newErrors = {};
       if (!firstName.trim()) newErrors.firstName = "Can't be empty";
@@ -50,13 +52,12 @@ const ProfileDetails = () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (email && !emailRegex.test(email)) newErrors.email = "Invalid email";
       setErrors(newErrors);
-
       // 2️⃣ Stop saving if there are errors
       if (Object.keys(newErrors).length > 0) {
         console.warn("Validation failed, not saving", newErrors);
+        toast.error("Please fix the errors before saving");
         return;
       }
-
       // 3️⃣ Save links
       try {
         setSavedLinks([...links]);
@@ -64,8 +65,9 @@ const ProfileDetails = () => {
         console.log("Links saved:", links);
       } catch (err) {
         console.error("Error saving links:", err);
+        toast.error("Failed to save links");
+        return;
       }
-
       // 4️⃣ Save profile details
       try {
         const profileObj = {
@@ -80,15 +82,17 @@ const ProfileDetails = () => {
         );
         setSavedProfile(profileObj);
         console.log("Profile details saved:", profileObj);
+        toast.success("Profile Updated Successfully");
       } catch (err) {
         console.error("Error saving profile details:", err);
+        toast.error("Failed to save profile details");
       }
     } catch (err) {
       console.error("Unexpected error in handleSave:", err);
+      toast.error("An unexpected error occurred");
     } finally {
       // Hide loading state first
       setIsSaving(false);
-
       // Then show success message after a tiny delay
       setTimeout(() => {
         setSaveMessage("Your changes have been successfully saved!");
@@ -120,10 +124,16 @@ const ProfileDetails = () => {
   const [savedLinks, setSavedLinks] = useState([]);
 
   useEffect(() => {
-    // Load saved links from localStorage on page load
+    // Load saved links for display
     const saved = localStorage.getItem("devlinks_savedLinks");
     if (saved) {
       setSavedLinks(JSON.parse(saved));
+    }
+
+    // Load profile details
+    const profileData = localStorage.getItem("devlinks_profileDetails");
+    if (profileData) {
+      setSavedProfile(JSON.parse(profileData));
     }
   }, []);
 
@@ -193,10 +203,6 @@ const ProfileDetails = () => {
     const raw = localStorage.getItem("devlinks_profileDetails");
     if (raw) setSavedProfile(JSON.parse(raw));
   }, []);
-
-  if (import.meta.env.DEV) {
-    localStorage.clear();
-  }
 
   // =======================================================
 

@@ -10,6 +10,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { GoLink } from "react-icons/go";
 import { FaFacebook } from "react-icons/fa6";
 import { LuLink } from "react-icons/lu";
+import ShareLinksButton from "../components/ShareButton";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -201,12 +202,9 @@ const Preview = () => {
               >
                 {isNavigating ? "Loading..." : "Back to Editor"}
               </button>
-              <button
-                onClick={handleShareLink}
-                className="w-[159.5px] lg:w-[133px] h-[46px] rounded-[8px] py-[11px] px-[27px] bg-[#633CFF] text-white text-[14px] lg:text-[16px] font-semibold hover:bg-[#532DD1] transition-colors"
-              >
-                Share Link
-              </button>
+
+              {/* NEW: share component */}
+              <ShareLinksButton links={savedLinks} />
             </div>
           </div>
           {/* You can keep top buttons here if needed */}
