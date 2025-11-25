@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { TbBrandGithub } from "react-icons/tb";
-import {
-  FaArrowRight,
-  FaTwitter,
-  FaLinkedin,
-  FaYoutube,
-  FaWhatsapp,
-  FaFacebook,
-} from "react-icons/fa";
+import { FaTwitter } from "react-icons/fa";
+import { FaYoutube } from "react-icons/fa";
+import { FaLinkedin } from "react-icons/fa";
 import { IoLogoInstagram } from "react-icons/io";
+import { FaWhatsapp } from "react-icons/fa";
+import { GoLink } from "react-icons/go";
+import { FaFacebook } from "react-icons/fa6";
+import { FaArrowRight } from "react-icons/fa";
 import { LuLink } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import ShareLinksButton from "../components/ShareButton";

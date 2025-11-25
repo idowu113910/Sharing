@@ -2,15 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { decodePayloadFromUrl } from "../utils/share";
 import { TbBrandGithub } from "react-icons/tb";
-import {
-  FaTwitter,
-  FaLinkedin,
-  FaYoutube,
-  FaFacebook,
-  FaWhatsapp,
-  FaArrowRight,
-} from "react-icons/fa";
-import { IoLogoInstagram } from "react-icons/io5";
+import { FaTwitter } from "react-icons/fa";
+import { FaYoutube } from "react-icons/fa";
+import { FaLinkedin } from "react-icons/fa";
+import { IoLogoInstagram } from "react-icons/io";
+import { FaWhatsapp } from "react-icons/fa";
+import { GoLink } from "react-icons/go";
+import { FaFacebook } from "react-icons/fa6";
+import { FaArrowRight } from "react-icons/fa";
 
 const PublicPreview = () => {
   const [payload, setPayload] = useState({ profile: null, links: [] });
