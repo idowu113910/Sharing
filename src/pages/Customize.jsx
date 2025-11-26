@@ -24,8 +24,6 @@ import NavBar from "../components/NavBar";
 import toast from "react-hot-toast";
 
 const Customize = ({ value, onChange, linkId }) => {
-
-
   const navigate = useNavigate();
 
   const [links, setLinks] = useState(() => {
@@ -43,11 +41,18 @@ const Customize = ({ value, onChange, linkId }) => {
 
   // Add a new link
   const handleAdd = () => {
+    if (links.length >= 5) {
+      toast.error("You can only add up to 5 links.");
+      return;
+    }
+    // 🚫 Stop adding more than 5
+
     const newLink = {
       id: Date.now(),
       platform: "GitHub",
       url: "",
     };
+
     const updatedLinks = [...links, newLink];
     setLinks(updatedLinks);
     localStorage.setItem("devlinks_links", JSON.stringify(updatedLinks));
@@ -70,44 +75,49 @@ const Customize = ({ value, onChange, linkId }) => {
   };
 
   // Update link data
-  const updateLink = (id, field, value) => {
-    const updatedLinks = links.map((link) =>
-      link.id === id ? { ...link, [field]: value } : link
-    );
-    setLinks(updatedLinks);
-    localStorage.setItem("devlinks_links", JSON.stringify(updatedLinks));
-  };
 
   // Validate and save links
 
   const handleSave = () => {
     setIsSaving(true);
     const newErrors = {};
+
     // Validate all links
     links.forEach((link) => {
       if (!link.url.trim()) {
         newErrors[link.id] = "Can't be empty";
+        toast.error(`Link ${link.platform} can't be empty`);
       } else if (!isValidUrl(link.url)) {
         newErrors[link.id] = "Please check the URL";
+        toast.error(`Invalid URL for ${link.platform}`);
       } else if (link.platform === "WhatsApp") {
         // Extract phone number from WhatsApp URL
         const phoneMatch = link.url.match(/wa\.me\/(\d+)/);
         if (!phoneMatch || phoneMatch[1].length < 11) {
-          newErrors[link.id] = "Please check the URL";
+          newErrors[link.id] = "Please check the WhatsApp URL";
+          toast.error("Invalid WhatsApp URL");
+        }
+      } else {
+        // Check if URL matches the selected platform
+        const pattern = PLATFORM_PATTERNS[link.platform];
+        if (pattern && !pattern.test(link.url)) {
+          newErrors[link.id] = `URL does not match ${link.platform}`;
+          toast.error(`Wrong URL for ${link.platform}`);
         }
       }
     });
+
     setErrors(newErrors);
+
     // Simulate save delay
     setTimeout(() => {
-      // If no errors, save the links
       if (Object.keys(newErrors).length === 0) {
         setSavedLinks([...links]);
         localStorage.setItem("devlinks_savedLinks", JSON.stringify(links));
-        toast.success("Link created successfully");
+        toast.success("Links saved successfully");
       }
       setIsSaving(false);
-    }, 800); // 800ms delay for better UX
+    }, 800);
   };
 
   // Simple URL validation
@@ -161,6 +171,98 @@ const Customize = ({ value, onChange, linkId }) => {
     return placeholders[platform] || "e.g. https://www.example.com/yourname";
   };
 
+  const PLATFORM_PATTERNS = {
+    GitHub: /^https?:\/\/(www\.)?github\.com\/.+$/i,
+    LinkedIn: /^https?:\/\/(www\.)?linkedin\.com\/.+$/i,
+    YouTube: /^https?:\/\/(www\.)?youtube\.com\/.+$/i,
+    Instagram: /^https?:\/\/(www\.)?instagram\.com\/.+$/i,
+    WhatsApp: /^https?:\/\/(www\.)?wa\.me\/.+$/i,
+  };
+
+  const OPTIONS = [
+    { id: "GitHub", label: "GitHub", icon: <TbBrandGithub /> },
+    { id: "LinkedIn", label: "LinkedIn", icon: <FaLinkedin /> },
+    { id: "YouTube", label: "YouTube", icon: <FaYoutube /> },
+    { id: "Instagram", label: "Instagram", icon: <IoLogoInstagram /> },
+    { id: "WhatsApp", label: "WhatsApp", icon: <FaWhatsapp /> },
+  ];
+
+  const [openDropdowns, setOpenDropdowns] = useState({});
+
+  const [open, setOpen] = useState(false);
+  // rotateCount increments on every toggle -> cumulative 360° spins
+  const [rotateCount, setRotateCount] = useState(0);
+  const containerRef = useRef(null);
+  const listRef = useRef(null);
+  const focusedIndexRef = useRef(-1);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    window.addEventListener("mousedown", onClickOutside);
+    return () => window.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  // keyboard support
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleOpen();
+      return;
+    }
+    if (!open) return;
+    const idx = focusedIndexRef.current;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = Math.min(idx + 1, OPTIONS.length - 1);
+      focusedIndexRef.current = next;
+      focusOption(next);
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = Math.max(idx - 1, 0);
+      focusedIndexRef.current = prev;
+      focusOption(prev);
+    }
+    if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const focusOption = (i) => {
+    const list = listRef.current;
+    if (!list) return;
+    const option = list.querySelectorAll('[role="option"]')[i];
+    if (option) option.focus();
+  };
+
+  const toggleOpen = (id) => {
+    setOpenDropdowns((prev) => (prev === id ? null : id));
+    setRotateCount((c) => c + 1);
+  };
+
+  const handleSelect = (platformId) => {
+    // Update the link's platform
+    updateLink(link.id, "platform", platformId);
+
+    // Close the dropdown
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [link.id]: false,
+    }));
+  };
+
+  const updateLink = (linkId, field, value) => {
+    setLinks((prevLinks) =>
+      prevLinks.map((item) =>
+        item.id === linkId ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
   // =================
 
   return (
@@ -180,24 +282,37 @@ const Customize = ({ value, onChange, linkId }) => {
       </div>
 
       <div
-        className="flex items-center border border-[#633CFF] rounded-[8px] w-[295px] md:w-[640px] lg:w-[728px]
-           h-[46px] py-[11px] px-[16px] gap-[8px] md:gap-[4px] mx-auto
-           justify-center text-[#633CFF] cursor-pointer select-none lg:ml-[584px] md:ml-[34px] transition-colors duration-300 bg-transparent hover:bg-[#633CFF]/10 hover:text-[#633CFF]"
-        onClick={handleAdd}
+        className={`flex items-center border border-[#633CFF] rounded-[8px] w-[295px] md:w-[640px] lg:w-[728px]
+    h-[46px] py-[11px] px-[16px] gap-[8px] md:gap-[4px] mx-auto
+    justify-center text-[#633CFF] select-none lg:ml-[584px] md:ml-[34px] transition-colors duration-300
+    bg-transparent
+    ${
+      savedLinks.length >= 5
+        ? "opacity-40 cursor-not-allowed"
+        : "cursor-pointer hover:bg-[#633CFF]/10"
+    }`}
+        onClick={() => {
+          if (savedLinks.length >= 5) return;
+          handleAdd();
+        }}
         role="button"
-        tabIndex={0}
+        tabIndex={savedLinks.length >= 5 ? -1 : 0}
         onKeyDown={(e) => {
+          if (savedLinks.length >= 5) return;
           if (e.key === "Enter" || e.key === " ") handleAdd();
         }}
       >
         <GrFormAdd />
+
         <button
           type="button"
           className="text-[16px] font-semibold mr-4"
           onClick={(e) => {
             e.stopPropagation();
+            if (savedLinks.length >= 5) return;
             handleAdd();
           }}
+          disabled={savedLinks.length >= 5}
         >
           Add new link
         </button>
@@ -233,8 +348,10 @@ const Customize = ({ value, onChange, linkId }) => {
               <label className="block text-[12px] font-normal text-[#333333] mt-4 mb-1">
                 Platform
               </label>
-              <div className="relative w-full">
-                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 text-[#737373] w-[12.52px] h-[14.53px] pointer-events-none z-10">
+
+              <div className="relative w-full" ref={containerRef}>
+                {/* Left icon (current platform) */}
+                <div className="absolute left-[16px] top-1/2 -translate-y-1/2 text-[#737373] w-[18px] h-[18px] pointer-events-none z-10">
                   {link.platform === "GitHub" && <TbBrandGithub />}
                   {link.platform === "LinkedIn" && <FaLinkedin />}
                   {link.platform === "YouTube" && <FaYoutube />}
@@ -242,42 +359,144 @@ const Customize = ({ value, onChange, linkId }) => {
                   {link.platform === "WhatsApp" && <FaWhatsapp />}
                 </div>
 
-                <div className="absolute right-[16px] top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-[#633CFF] transition-transform duration-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-
-                <select
-                  value={link.platform}
-                  onChange={(e) =>
-                    updateLink(link.id, "platform", e.target.value)
-                  }
-                  className="w-full border border-[#D9D9D9] rounded-lg p-3 text-sm pl-10 pr-10 hover:shadow-[0_0_32px_0_rgba(99,60,255,0.5)] transition-shadow duration-300 focus:border-[#633CFF] focus:outline-none appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23633CFF'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 16px center",
-                    backgroundSize: "16px",
-                  }}
+                {/* Arrow button (acts as the toggler) */}
+                <button
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded={openDropdowns === link.id}
+                  onClick={() => toggleOpen(link.id)}
+                  onKeyDown={handleKeyDown}
+                  className="w-full text-left border border-[#D9D9D9] rounded-lg p-3 text-sm pl-11 pr-10 
+    hover:shadow-[0_0_32px_0_rgba(99,60,255,0.25)] hover:border-[#633CFF]
+    transition-all duration-300 focus:border-[#633CFF] focus:outline-none bg-white flex items-center justify-between"
                 >
-                  <option value="GitHub">GitHub</option>
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="YouTube">YouTube</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="WhatsApp">WhatsApp</option>
-                </select>
+                  <span className="truncate text-[#333333]">
+                    {OPTIONS.find((o) => o.id === link.platform)?.label ||
+                      "Select platform"}
+                  </span>
+
+                  {/* Rotating arrow */}
+                  <span
+                    className="pointer-events-none -mr-6"
+                    style={{
+                      display: "inline-flex",
+                      transition: "transform 300ms ease-out",
+                      transform:
+                        openDropdowns === link.id
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                    }}
+                  >
+                    <svg
+                      className="w-4 h-4 text-[#633CFF]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </span>
+                </button>
+
+                {/* Options list - 688px width with 656px divider lines */}
+                {openDropdowns === link.id && (
+                  <div
+                    ref={listRef}
+                    role="listbox"
+                    aria-label="Platforms"
+                    className="absolute left-0 mt-2 z-30 bg-white border border-[#D9D9D9] rounded-lg 
+      shadow-[0_0_32px_0_rgba(0,0,0,0.1)] max-h-56 overflow-auto w-[255px] md:w-[600px] lg:w-[686px]"
+                  >
+                    {OPTIONS.map((opt, i) => (
+                      <div key={opt.id} className="w-full">
+                        <button
+                          role="option"
+                          tabIndex={0}
+                          onClick={() => {
+                            updateLink(link.id, "platform", opt.id); // ✅ Fixed: Pass link.id and opt.id
+                            setOpenDropdowns((prev) => ({
+                              ...prev,
+                              [link.id]: false,
+                            }));
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              updateLink(link.id, "platform", opt.id); // ✅ Fixed
+                              setOpenDropdowns((prev) => ({
+                                ...prev,
+                                [link.id]: false,
+                              }));
+                            }
+                            if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              const next = Math.min(i + 1, OPTIONS.length - 1);
+                              focusedIndexRef.current = next;
+                              focusOption(next);
+                            }
+                            if (e.key === "ArrowUp") {
+                              e.preventDefault();
+                              const prev = Math.max(i - 1, 0);
+                              focusedIndexRef.current = prev;
+                              focusOption(prev);
+                            }
+                            if (e.key === "Escape")
+                              setOpenDropdowns((prev) => ({
+                                ...prev,
+                                [link.id]: false,
+                              }));
+                          }}
+                          className="w-full text-left px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors duration-200 group"
+                        >
+                          {/* Icon - changes color on hover */}
+                          <span
+                            className={`w-5 h-5 flex items-center justify-center transition-colors duration-200
+              ${
+                opt.id === link.platform
+                  ? "text-[#633CFF]"
+                  : "text-[#737373] group-hover:text-[#633CFF]"
+              }`}
+                          >
+                            {opt.icon}
+                          </span>
+
+                          {/* Label - changes color on hover */}
+                          <span
+                            className={`truncate text-sm transition-colors duration-200
+              ${
+                opt.id === link.platform
+                  ? "text-[#633CFF] font-semibold"
+                  : "text-[#333333] group-hover:text-[#633CFF]"
+              }`}
+                          >
+                            {opt.label}
+                          </span>
+
+                          {/* Checkmark for selected item */}
+                          {opt.id === link.platform && (
+                            <span className="ml-auto text-[#633CFF] text-lg font-bold">
+                              ✓
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Divider line - 656px width, centered */}
+                        {i < OPTIONS.length - 1 && (
+                          <div className="flex justify-center">
+                            <div className="border-b border-[#E5E5E5] w-[223px] md:w-[568px] lg:w-[656px]" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
               <label className="block text-[12px] text-[#333333] mb-1 mt-4">
                 Link
               </label>
@@ -290,11 +509,22 @@ const Customize = ({ value, onChange, linkId }) => {
                   id={`link-input-${link.id}`}
                   value={link.url}
                   onChange={(e) => {
-                    updateLink(link.id, "url", e.target.value);
+                    const value = e.target.value;
+                    updateLink(link.id, "url", value);
+
+                    // clear previous errors
                     if (errors[link.id]) {
                       const newErrors = { ...errors };
                       delete newErrors[link.id];
                       setErrors(newErrors);
+                    }
+
+                    // Validate platform-specific URL
+                    if (link.platform && value) {
+                      const pattern = PLATFORM_PATTERNS[link.platform];
+                      if (pattern && !pattern.test(value)) {
+                        toast.error(`Invalid ${link.platform} URL!`);
+                      }
                     }
                   }}
                   type="url"
@@ -347,7 +577,7 @@ const Customize = ({ value, onChange, linkId }) => {
         }`}
       >
         <button
-          onClick={handleSave}
+          onClick={() => handleSave(link)}
           disabled={isSaving || links.length === 0}
           className="mt-4 lg:mt-0 w-[311px] md:w-[91px] h-[46px] py-[11px] px-[27px]
          border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
