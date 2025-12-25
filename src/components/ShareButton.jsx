@@ -1,7 +1,7 @@
 // src/components/ShareLinksButton.jsx
 import React from "react";
 import toast from "react-hot-toast";
-import { encodePayloadToUrl } from "../utils/share";
+import { encodePayloadToUrl } from "../utils/Share.jsx";
 
 export default function ShareLinksButton({
   links = [],
