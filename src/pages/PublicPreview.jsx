@@ -1,6 +1,6 @@
 // src/pages/PublicPreview.jsx
 import React, { useEffect, useState } from "react";
-import { decodePayloadFromUrl } from "../utils/share";
+import { decodePayloadFromUrl } from "../utils/share.jsx";
 import { TbBrandGithub } from "react-icons/tb";
 import { FaTwitter } from "react-icons/fa";
 import { FaYoutube } from "react-icons/fa";
