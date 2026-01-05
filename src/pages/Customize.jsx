@@ -22,9 +22,11 @@ import { FaFacebook } from "react-icons/fa6";
 import { FaArrowRight } from "react-icons/fa";
 import NavBar from "../components/NavBar";
 import toast from "react-hot-toast";
+import { SiFrontendmentor } from "react-icons/si";
 
 const Customize = ({ value, onChange, linkId }) => {
   const navigate = useNavigate();
+  const validationTimeoutRef = useRef({});
 
   const [links, setLinks] = useState(() => {
     // Load links from localStorage on initial render
@@ -69,9 +71,16 @@ const Customize = ({ value, onChange, linkId }) => {
       "devlinks_savedLinks",
       JSON.stringify(updatedSavedLinks)
     );
+
     const newErrors = { ...errors };
     delete newErrors[id];
     setErrors(newErrors);
+
+    // Clear any pending validation timeout for this link
+    if (validationTimeoutRef.current[id]) {
+      clearTimeout(validationTimeoutRef.current[id]);
+      delete validationTimeoutRef.current[id];
+    }
   };
 
   // Update link data
@@ -153,6 +162,7 @@ const Customize = ({ value, onChange, linkId }) => {
       Facebook: <FaFacebook className="w-4 h-4" />,
       Instagram: <IoLogoInstagram className="w-4 h-4" />,
       WhatsApp: <FaWhatsapp className="w-4 h-4" />,
+      FrontendMentor: <SiFrontendmentor className="w-4 h-4" />,
     };
     return icons[platform];
   };
@@ -167,6 +177,8 @@ const Customize = ({ value, onChange, linkId }) => {
       Facebook: "e.g. https://www.facebook.com/johnappleseed",
       Instagram: "e.g. https://www.instagram.com/johnappleseed",
       WhatsApp: "e.g. https://wa.me/1234567890",
+      "Frontend Mentor":
+        "e.g. https://www.frontendmentor.io/profile/johnappleseed",
     };
     return placeholders[platform] || "e.g. https://www.example.com/yourname";
   };
@@ -177,6 +189,8 @@ const Customize = ({ value, onChange, linkId }) => {
     YouTube: /^https?:\/\/(www\.)?youtube\.com\/.+$/i,
     Instagram: /^https?:\/\/(www\.)?instagram\.com\/.+$/i,
     WhatsApp: /^https?:\/\/(www\.)?wa\.me\/.+$/i,
+    Twitter: /^https?:\/\/(www\.)?twitter\.com\/.+$/i,
+    "Frontend Mentor": /^https?:\/\/(www\.)?frontendmentor\.io\/profile\/.+$/i,
   };
 
   const OPTIONS = [
@@ -185,6 +199,13 @@ const Customize = ({ value, onChange, linkId }) => {
     { id: "YouTube", label: "YouTube", icon: <FaYoutube /> },
     { id: "Instagram", label: "Instagram", icon: <IoLogoInstagram /> },
     { id: "WhatsApp", label: "WhatsApp", icon: <FaWhatsapp /> },
+    { id: "Facebook", label: "Facebook", icon: <FaFacebook /> },
+    {
+      id: "Frontend Mentor",
+      label: "Frontend Mentor",
+      icon: <SiFrontendmentor />,
+    },
+    { id: "Twitter", label: "Twitter", icon: <FaTwitter /> },
   ];
 
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -357,6 +378,9 @@ const Customize = ({ value, onChange, linkId }) => {
                   {link.platform === "YouTube" && <FaYoutube />}
                   {link.platform === "Instagram" && <IoLogoInstagram />}
                   {link.platform === "WhatsApp" && <FaWhatsapp />}
+                  {link.platform === "Facebook" && <FaFacebook />}
+                  {link.platform === "Frontend Mentor" && <SiFrontendmentor />}
+                  {link.platform === "Twitter" && <FaTwitter />}
                 </div>
 
                 {/* Arrow button (acts as the toggler) */}
@@ -367,8 +391,8 @@ const Customize = ({ value, onChange, linkId }) => {
                   onClick={() => toggleOpen(link.id)}
                   onKeyDown={handleKeyDown}
                   className="w-full text-left border border-[#D9D9D9] rounded-lg p-3 text-sm pl-11 pr-10 
-    hover:shadow-[0_0_32px_0_rgba(99,60,255,0.25)] hover:border-[#633CFF]
-    transition-all duration-300 focus:border-[#633CFF] focus:outline-none bg-white flex items-center justify-between"
+hover:shadow-[0_0_32px_0_rgba(99,60,255,0.25)] hover:border-[#633CFF]
+transition-all duration-300 focus:border-[#633CFF] focus:outline-none bg-white flex items-center justify-between"
                 >
                   <span className="truncate text-[#333333]">
                     {OPTIONS.find((o) => o.id === link.platform)?.label ||
@@ -403,14 +427,15 @@ const Customize = ({ value, onChange, linkId }) => {
                   </span>
                 </button>
 
-                {/* Options list - 688px width with 656px divider lines */}
+                {/* Options list - Removed scrollbar */}
                 {openDropdowns === link.id && (
                   <div
                     ref={listRef}
                     role="listbox"
                     aria-label="Platforms"
-                    className="absolute left-0 mt-2 z-30 bg-white border border-[#D9D9D9] rounded-lg 
-      shadow-[0_0_32px_0_rgba(0,0,0,0.1)] max-h-56 overflow-auto w-[255px] md:w-[600px] lg:w-[686px]"
+                    className="absolute left-0 top-full mt-2 z-[9999] bg-white border border-[#D9D9D9] rounded-lg 
+shadow-[0_0_32px_0_rgba(0,0,0,0.1)] w-[255px] md:w-[600px] lg:w-[686px] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                    style={{ maxHeight: "224px", overflowY: "auto" }}
                   >
                     {OPTIONS.map((opt, i) => (
                       <div key={opt.id} className="w-full">
@@ -418,7 +443,7 @@ const Customize = ({ value, onChange, linkId }) => {
                           role="option"
                           tabIndex={0}
                           onClick={() => {
-                            updateLink(link.id, "platform", opt.id); // ✅ Fixed: Pass link.id and opt.id
+                            updateLink(link.id, "platform", opt.id);
                             setOpenDropdowns((prev) => ({
                               ...prev,
                               [link.id]: false,
@@ -427,7 +452,7 @@ const Customize = ({ value, onChange, linkId }) => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
-                              updateLink(link.id, "platform", opt.id); // ✅ Fixed
+                              updateLink(link.id, "platform", opt.id);
                               setOpenDropdowns((prev) => ({
                                 ...prev,
                                 [link.id]: false,
@@ -456,11 +481,11 @@ const Customize = ({ value, onChange, linkId }) => {
                           {/* Icon - changes color on hover */}
                           <span
                             className={`w-5 h-5 flex items-center justify-center transition-colors duration-200
-              ${
-                opt.id === link.platform
-                  ? "text-[#633CFF]"
-                  : "text-[#737373] group-hover:text-[#633CFF]"
-              }`}
+${
+  opt.id === link.platform
+    ? "text-[#633CFF]"
+    : "text-[#737373] group-hover:text-[#633CFF]"
+}`}
                           >
                             {opt.icon}
                           </span>
@@ -468,11 +493,11 @@ const Customize = ({ value, onChange, linkId }) => {
                           {/* Label - changes color on hover */}
                           <span
                             className={`truncate text-sm transition-colors duration-200
-              ${
-                opt.id === link.platform
-                  ? "text-[#633CFF] font-semibold"
-                  : "text-[#333333] group-hover:text-[#633CFF]"
-              }`}
+${
+  opt.id === link.platform
+    ? "text-[#633CFF] font-semibold"
+    : "text-[#333333] group-hover:text-[#633CFF]"
+}`}
                           >
                             {opt.label}
                           </span>
@@ -512,19 +537,36 @@ const Customize = ({ value, onChange, linkId }) => {
                     const value = e.target.value;
                     updateLink(link.id, "url", value);
 
-                    // clear previous errors
+                    // Clear previous errors immediately
                     if (errors[link.id]) {
                       const newErrors = { ...errors };
                       delete newErrors[link.id];
                       setErrors(newErrors);
                     }
 
-                    // Validate platform-specific URL
-                    if (link.platform && value) {
-                      const pattern = PLATFORM_PATTERNS[link.platform];
-                      if (pattern && !pattern.test(value)) {
-                        toast.error(`Invalid ${link.platform} URL!`);
-                      }
+                    // Clear any existing timeout for this link
+                    if (validationTimeoutRef.current[link.id]) {
+                      clearTimeout(validationTimeoutRef.current[link.id]);
+                    }
+
+                    // Only validate if the URL looks complete (has a domain with extension like .com, .org, etc)
+                    const hasCompleteUrl = /^https?:\/\/.+\..+/.test(value);
+
+                    if (value && link.platform && hasCompleteUrl) {
+                      validationTimeoutRef.current[link.id] = setTimeout(() => {
+                        const pattern = PLATFORM_PATTERNS[link.platform];
+                        // Show toast after checking if URL is wrong
+                        if (pattern && !pattern.test(value)) {
+                          toast.error(`Invalid ${link.platform} URL!`);
+                          setErrors((prev) => ({
+                            ...prev,
+                            [link.id]: `URL does not match ${link.platform}`,
+                          }));
+                        } else if (pattern && pattern.test(value)) {
+                          // Optional: Show success toast when URL is correct
+                          // toast.success(`Valid ${link.platform} URL!`);
+                        }
+                      }, 1500); // Wait 1.5 seconds after they stop typing
                     }
                   }}
                   type="url"
@@ -568,19 +610,17 @@ const Customize = ({ value, onChange, linkId }) => {
 
       <div
         className={`border-t border-t-[#D9D9D9] w-[343px] md:w-[721px] lg:w-[808px]
-        mx-auto mt-18 lg:mt-0 flex items-center justify-center md:justify-end
-        lg:sticky lg:bottom-0 lg:left-[500px] overflow-hidden lg:z-50
-        lg:bg-white lg:py-4 lg:shadow-[0_-2px_8px_rgba(0,0,0,0.05)]
-        transition-opacity duration-300 
-        ${
-          links.length === 0 ? "opacity-40 pointer-events-none" : "opacity-100"
-        }`}
+mx-auto mt-18 lg:mt-0 flex items-center justify-center md:justify-end
+lg:sticky lg:bottom-0 lg:left-[500px] overflow-hidden lg:z-50
+lg:bg-white lg:py-4 lg:shadow-[0_-2px_8px_rgba(0,0,0,0.05)]
+transition-all duration-300 
+${links.length === 0 ? "opacity-40 pointer-events-none" : "opacity-100"}`}
       >
         <button
           onClick={() => handleSave(link)}
           disabled={isSaving || links.length === 0}
           className="mt-4 lg:mt-0 w-[311px] md:w-[91px] h-[46px] py-[11px] px-[27px]
-         border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? "Saving..." : "Save"}
         </button>
@@ -588,35 +628,157 @@ const Customize = ({ value, onChange, linkId }) => {
 
       {/* iPhone Preview with Overlay */}
       <div className="lg:absolute bottom-[58px] left-25 hidden lg:block">
-        <div className="relative">
-          <img src={iphone} alt="iPhone mockup" />
+        <div className="relative flex justify-center items-center min-h-screen">
+          {/* Shared coordinate container */}
+          <div className="relative w-[307px] h-[631px]">
+            {/* SVG PHONE */}
+            <svg
+              className="absolute inset-0"
+              width="307"
+              height="631"
+              viewBox="0 0 307 631"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Outer phone border */}
+              <rect
+                x="1"
+                y="1"
+                width="305"
+                height="629"
+                rx="47"
+                stroke="#737373"
+                fill="none"
+              />
 
-          {/* Saved Links Overlay - positioned over the link areas in the iPhone image */}
-          <div className="absolute top-[44%] left-[11%] right-[11%] flex flex-col gap-y-[20px]">
-            {savedLinks.map((link, index) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between px-4 py-[11px] rounded-lg text-white transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: getPlatformColor(link.platform),
-                  height: "44px",
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    {getPlatformIcon(link.platform)}
-                  </span>
-                  <span className="text-xs font-medium">{link.platform}</span>
-                </div>
-                <FaArrowRight className="w-2.5 h-2.5" />
-              </a>
-            ))}
+              {/* Inner screen border with notch */}
+              <path
+                d="M 15,55 
+           Q 15,15 55,15 
+           L 95,15 
+           Q 100,15 100,20
+           Q 100,28 105,33
+           Q 110,38 120,38
+           L 187,38
+           Q 197,38 202,33
+           Q 207,28 207,20
+           Q 207,15 212,15
+           L 252,15 
+           Q 292,15 292,55 
+           L 292,576 
+           Q 292,616 252,616 
+           L 55,616 
+           Q 15,616 15,576 
+           Z"
+                stroke="#737373"
+                fill="none"
+              />
+
+              {/* Avatar placeholder */}
+              <circle cx="153.5" cy="120" r="48" fill="#EFEFEF" />
+
+              {/* Name bar */}
+              <rect
+                x="83.5"
+                y="190"
+                width="140"
+                height="14"
+                rx="7"
+                fill="#EFEFEF"
+              />
+
+              {/* Username bar */}
+              <rect
+                x="103.5"
+                y="215"
+                width="100"
+                height="10"
+                rx="5"
+                fill="#EFEFEF"
+              />
+
+              {/* Link placeholders (only shown if no saved links) */}
+              {savedLinks.length === 0 && (
+                <>
+                  <rect
+                    x="36"
+                    y="295"
+                    width="237"
+                    height="44"
+                    rx="10"
+                    fill="#EFEFEF"
+                  />
+                  <rect
+                    x="36"
+                    y="355"
+                    width="237"
+                    height="44"
+                    rx="10"
+                    fill="#EFEFEF"
+                  />
+                  <rect
+                    x="36"
+                    y="415"
+                    width="237"
+                    height="44"
+                    rx="10"
+                    fill="#EFEFEF"
+                  />
+                  <rect
+                    x="36"
+                    y="475"
+                    width="237"
+                    height="44"
+                    rx="10"
+                    fill="#EFEFEF"
+                  />
+                  <rect
+                    x="36"
+                    y="535"
+                    width="237"
+                    height="44"
+                    rx="10"
+                    fill="#EFEFEF"
+                  />
+                </>
+              )}
+            </svg>
+
+            {/* SAVED LINKS — EXACT SVG POSITIONS */}
+            {savedLinks.map((link, index) => {
+              const positions = [295, 355, 415, 475, 535];
+
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute flex items-center justify-between px-4 rounded-lg text-white transition-transform hover:scale-105"
+                  style={{
+                    top: `${positions[index]}px`,
+                    left: "36px",
+                    width: "237px",
+                    height: "44px",
+                    backgroundColor: getPlatformColor(link.platform),
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {getPlatformIcon(link.platform)}
+                    </span>
+                    <span className="text-xs font-medium">{link.platform}</span>
+                  </div>
+                  <FaArrowRight className="w-2.5 h-2.5" />
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>
+
+
+      
     </div>
   );
 };

@@ -5,6 +5,7 @@ import Customize from "./pages/Customize";
 import ProfileDetails from "./pages/ProfileDetails";
 import Preview from "./pages/Preview";
 import PublicPreview from "./pages/PublicPreview";
+import LoadingPage from "./components/LoadingPage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-center" reverseOrder={false} />
         <Routes>
+          <Route path="/loading" element={<LoadingPage />} />
           <Route path="/" element={<Customize />} />
           <Route path="/profiledetails" element={<ProfileDetails />} />
           <Route path="/preview" element={<Preview />} />

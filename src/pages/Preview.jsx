@@ -17,7 +17,6 @@ const Preview = ({ hideButtons = false }) => {
   const [savedProfile, setSavedProfile] = useState(null);
   const [savedLinks, setSavedLinks] = useState([]);
   const [copiedLinkId, setCopiedLinkId] = useState(null);
-  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     const profileData = localStorage.getItem("devlinks_profileDetails");
@@ -64,11 +63,7 @@ const Preview = ({ hideButtons = false }) => {
   };
 
   const handleBackToEditor = () => {
-    setIsNavigating(true);
-    setTimeout(() => {
-      navigate("/");
-      setIsNavigating(false);
-    }, 500);
+    navigate("/");
   };
 
   return (
@@ -77,15 +72,13 @@ const Preview = ({ hideButtons = false }) => {
       <div className="md:bg-[#633CFF] md:h-[357px] md:rounded-bl-[32px] md:rounded-br-[32px] md:overflow-hidden relative"></div>
 
       {/* Conditional Buttons */}
-      {/* Conditional Buttons */}
       {!hideButtons && (
         <div className="hidden md:flex w-[335px] md:w-[720px] lg:w-[1300px] md:h-[78px] gap-[16px] justify-between md:p-6 mx-auto pt-3 md:pt-4 border-[1px] border-white rounded-[8px] bg-white md:relative bottom-[340px]">
           <button
             onClick={handleBackToEditor}
-            disabled={isNavigating}
-            className="w-[159.5px] h-[46px] rounded-[8px] border-[1px] py-[11px] px-[27px] text-[#633CFF] text-[8px] md:text-[14px] font-semibold border-[#633CFF] hover:bg-[#EFEBFF] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            className="w-[159.5px] h-[46px] rounded-[8px] border-[1px] py-[11px] px-[27px] text-[#633CFF] text-[8px] md:text-[14px] font-semibold border-[#633CFF] hover:bg-[#EFEBFF] transition-colors cursor-pointer whitespace-nowrap"
           >
-            {isNavigating ? "Loading..." : "Back to Editor"}
+            Back to Editor
           </button>
 
           <ShareLinksButton links={savedLinks} />
@@ -98,16 +91,15 @@ const Preview = ({ hideButtons = false }) => {
           <div className="flex items-center justify-between gap-3 max-w-[420px] mx-auto">
             <button
               onClick={handleBackToEditor}
-              disabled={isNavigating}
-              className="min-w-[110px] h-10 rounded-[8px] border-[1px] border-[#633CFF] bg-white text-[#633CFF] text-sm font-semibold px-3 py-2 whitespace-nowrap hover:bg-[#EFEBFF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-w-[110px] h-10 rounded-[8px] border-[1px] border-[#633CFF] bg-white text-[#633CFF] text-sm font-semibold px-3 py-2 whitespace-nowrap hover:bg-[#EFEBFF] transition-colors"
               aria-label="Back to Editor"
             >
-              {isNavigating ? "Loading..." : "Back"}
+              Back
             </button>
 
             {/* ShareLinksButton small variant — it already accepts `small` prop */}
             <div className="flex items-center">
-              <ShareLinksButton links={savedLinks} small={true} />
+              <ShareLinksButton links={savedLinks} profile={savedProfile} />
             </div>
           </div>
         </div>
@@ -157,7 +149,7 @@ const Preview = ({ hideButtons = false }) => {
 
       {/* Fixed Copy Success Message */}
       {copiedLinkId && (
-        <div className="fixed bottom-[25px] left-3 z-50">
+        <div className="fixed bottom-[25px] left-3 lg:left-125 md:left-50 md:bottom-[2px] z-50">
           <div className="bg-[#333333] text-white text-[14px] flex gap-[8px] font-medium px-6 py-3 rounded-[12px] shadow-[0_4px_4px_#0000001A] w-[350px]">
             <LuLink className="text-[#737373] w-[15.63px] h-[15.63px] mt-1" />
             The link has been copied to your clipboard!

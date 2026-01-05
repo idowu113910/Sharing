@@ -37,8 +37,6 @@ const ProfileDetails = () => {
     return savedData ? JSON.parse(savedData) : [];
   });
 
-
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -375,55 +373,213 @@ const ProfileDetails = () => {
 
       <div className="lg:absolute bottom-[75px] left-25 hidden lg:block">
         <div className="relative">
-          <img src={iphone} alt="iPhone mockup" />
+          <div className="lg:absolute -bottom-[5px] left-5 hidden lg:block">
+            <div className="relative flex justify-center items-center min-h-screen">
+              {/* Shared coordinate container */}
+              <div className="relative w-[307px] h-[631px]">
+                {/* SVG PHONE */}
+                <svg
+                  className="absolute inset-0"
+                  width="307"
+                  height="631"
+                  viewBox="0 0 307 631"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Outer phone border */}
+                  <rect
+                    x="1"
+                    y="1"
+                    width="305"
+                    height="629"
+                    rx="47"
+                    stroke="#737373"
+                    fill="none"
+                  />
 
-          {/* Profile image inside iPhone */}
-          {profileImage && (
-            <div className="absolute top-[10%] left-[50%] -translate-x-1/2 w-[96px] h-[96px] rounded-full overflow-hidden border-2 border-white">
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="w-[96px] h-[96px] object-cover"
-              />
-            </div>
-          )}
+                  {/* Inner screen border with notch */}
+                  <path
+                    d="M 15,55 
+              Q 15,15 55,15 
+              L 95,15 
+              Q 100,15 100,20
+              Q 100,28 105,33
+              Q 110,38 120,38
+              L 187,38
+              Q 197,38 202,33
+              Q 207,28 207,20
+              Q 207,15 212,15
+              L 252,15 
+              Q 292,15 292,55 
+              L 292,576 
+              Q 292,616 252,616 
+              L 55,616 
+              Q 15,616 15,576 
+              Z"
+                    stroke="#737373"
+                    fill="none"
+                  />
 
-          {/* Saved name + email (centered under the circle) */}
-          {savedProfile && (
-            <div
-              className="absolute top-[28%] left-[50%] -translate-x-1/2 w-[180px] text-center"
-              style={{ pointerEvents: "none" }} // so it doesn't block clicks on links
-            >
-              <div className="text-[#333333] text-[12px] font-semibold w-[96px] h-[27px] mx-auto mt-1.5">
-                {savedProfile.firstName} {savedProfile.lastName}
+                  {/* Avatar placeholder */}
+                  {!profileImage && (
+                    <circle cx="153.5" cy="120" r="48" fill="#EFEFEF" />
+                  )}
+
+                  {/* Name bar placeholder */}
+                  {!savedProfile?.firstName && (
+                    <rect
+                      x="83.5"
+                      y="190"
+                      width="140"
+                      height="14"
+                      rx="7"
+                      fill="#EFEFEF"
+                    />
+                  )}
+
+                  {/* Email bar placeholder */}
+                  {!savedProfile?.email && (
+                    <rect
+                      x="103.5"
+                      y="215"
+                      width="100"
+                      height="10"
+                      rx="5"
+                      fill="#EFEFEF"
+                    />
+                  )}
+
+                  {/* Link placeholders */}
+                  {savedLinks.length === 0 && (
+                    <>
+                      <rect
+                        x="36"
+                        y="295"
+                        width="237"
+                        height="44"
+                        rx="10"
+                        fill="#EFEFEF"
+                      />
+                      <rect
+                        x="36"
+                        y="355"
+                        width="237"
+                        height="44"
+                        rx="10"
+                        fill="#EFEFEF"
+                      />
+                      <rect
+                        x="36"
+                        y="415"
+                        width="237"
+                        height="44"
+                        rx="10"
+                        fill="#EFEFEF"
+                      />
+                      <rect
+                        x="36"
+                        y="475"
+                        width="237"
+                        height="44"
+                        rx="10"
+                        fill="#EFEFEF"
+                      />
+                      <rect
+                        x="36"
+                        y="535"
+                        width="237"
+                        height="44"
+                        rx="10"
+                        fill="#EFEFEF"
+                      />
+                    </>
+                  )}
+                </svg>
+
+                {/* SAVED PROFILE IMAGE (exact avatar replacement) */}
+                {profileImage && (
+                  <div
+                    className="absolute rounded-full overflow-hidden"
+                    style={{
+                      top: "72px",
+                      left: "105.5px",
+                      width: "96px",
+                      height: "96px",
+                    }}
+                  >
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* SAVED NAME (exact replacement) */}
+                {savedProfile?.firstName && (
+                  <div
+                    className="absolute text-[#333333] text-[18px] font-bold flex items-center justify-center"
+                    style={{
+                      top: "190px",
+                      left: "83.5px",
+                      width: "140px",
+                      height: "14px",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {savedProfile.firstName} {savedProfile.lastName}
+                  </div>
+                )}
+
+                {/* SAVED EMAIL (exact replacement) */}
+                {savedProfile?.email && (
+                  <div
+                    className="absolute text-[#737373] text-[14px] flex items-center justify-center font-normal"
+                    style={{
+                      top: "215px",
+                      left: "103.5px",
+                      width: "100px",
+                      height: "10px",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {savedProfile.email}
+                  </div>
+                )}
+
+                {/* SAVED LINKS (exact replacement) */}
+                {savedLinks.map((link, index) => {
+                  const positions = [295, 355, 415, 475, 535];
+
+                  return (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute flex items-center justify-between px-4 rounded-lg text-white transition-transform hover:scale-105"
+                      style={{
+                        top: `${positions[index]}px`,
+                        left: "36px",
+                        width: "237px",
+                        height: "44px",
+                        backgroundColor: getPlatformColor(link.platform),
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">
+                          {getPlatformIcon(link.platform)}
+                        </span>
+                        <span className="text-xs font-medium">
+                          {link.platform}
+                        </span>
+                      </div>
+                      <FaArrowRight className="w-2.5 h-2.5" />
+                    </a>
+                  );
+                })}
               </div>
-              <div className="text-[#737373] text-[10px] w-[123px] h-[21px] mx-auto">
-                {savedProfile.email}
-              </div>
             </div>
-          )}
-
-          {/* Saved Links Overlay */}
-          <div className="absolute top-[44%] left-[11%] right-[11%] flex flex-col gap-y-[20px]">
-            {savedLinks.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between px-4 py-[11px] rounded-lg text-white transition-transform hover:scale-105"
-                style={{
-                  backgroundColor: getPlatformColor(link.platform),
-                  height: "44px",
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  {getPlatformIcon(link.platform)}
-                  <span className="text-xs font-medium">{link.platform}</span>
-                </div>
-                <FaArrowRight className="w-2.5 h-2.5" />
-              </a>
-            ))}
           </div>
         </div>
       </div>

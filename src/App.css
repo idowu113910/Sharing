@@ -10,9 +10,20 @@
 html,
 body {
   overflow-x: hidden;
+
 }
 
+.phone-slide-in {
+  transform: translateX(-100px);
+  opacity: 0;
+  animation: slideInFromLeft 1.5s ease-out forwards;
+}
 
+@keyframes slideInFromLeft {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 
 /* Remove scrollbar from entire page */
-

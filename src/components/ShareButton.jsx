@@ -5,7 +5,7 @@ import { encodePayloadToUrl } from "../utils/Share.jsx";
 
 export default function ShareLinksButton({
   links = [],
-  profile = null, // pass profile object if you have it
+  profile = null,
   label = "Share Link",
   small = false,
 }) {
@@ -22,64 +22,91 @@ export default function ShareLinksButton({
 
   const encoded = encodePayloadToUrl({ profile: effectiveProfile, links });
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const previewPath = "/shared"; // public preview route
+  const previewPath = "/shared";
   const shareUrl = encoded
     ? `${origin}${previewPath}#data=${encoded}`
     : `${origin}${previewPath}`;
 
-  const copyToClipboard = async (url) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Share link copied to clipboard");
-    } catch (err) {
-      console.error("Clipboard copy failed", err);
-      toast.error("Could not copy link");
-    }
-  };
+  const handleShare = async () => {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    const isHttps = window.location.protocol === "https:";
 
-  const handleNativeShare = async () => {
-    if (navigator.share) {
+    console.log("=== SHARE DEBUG ===");
+    console.log("Is localhost?", isLocalhost);
+    console.log("Is HTTPS?", isHttps);
+    console.log("navigator.share exists?", !!navigator.share);
+
+    // Check if Web Share API is supported AND we're in a secure context
+    if (!navigator.share || (isLocalhost && !isHttps)) {
+      console.log("Web Share not available - using clipboard fallback");
       try {
-        await navigator.share({
-          title: effectiveProfile
-            ? `${effectiveProfile.firstName || ""} ${
-                effectiveProfile.lastName || ""
-              }`.trim() || "Saved links"
-            : "Saved links",
-          text: "Check out these links",
-          url: shareUrl,
-        });
-        toast.success("Shared successfully");
-        return;
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard");
       } catch (err) {
-        // fallback to copy
-        console.info("Web Share failed or cancelled", err);
+        console.error("Clipboard copy failed", err);
+        toast.error("Could not copy link");
+      }
+      return;
+    }
+
+    // Build the name from profile
+    const profileName = effectiveProfile
+      ? `${effectiveProfile.firstName || ""} ${
+          effectiveProfile.lastName || ""
+        }`.trim()
+      : "";
+
+    const shareData = {
+      title: profileName || "My Links",
+      text: profileName
+        ? `Check out ${profileName}'s links`
+        : "Check out these links",
+      url: shareUrl,
+    };
+
+    console.log("Attempting to share:", shareData);
+
+    try {
+      await navigator.share(shareData);
+      console.log("✅ Share completed successfully");
+      toast.success("Shared successfully");
+    } catch (err) {
+      console.error("Share error:", err.name, err.message);
+
+      if (err.name === "AbortError") {
+        console.log("User cancelled share");
+        // Do nothing
+      } else if (err.name === "NotAllowedError") {
+        console.log("Permission denied - falling back to copy");
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Link copied to clipboard");
+        } catch (copyErr) {
+          toast.error("Could not copy link");
+        }
+      } else {
+        console.error("Unexpected error - falling back to copy");
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Link copied to clipboard");
+        } catch (copyErr) {
+          toast.error("Could not share or copy link");
+        }
       }
     }
-    await copyToClipboard(shareUrl);
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={handleNativeShare}
-        className={`${
-          small ? "px-3 py-2 text-sm" : "px-3 py-2"
-        } rounded-[8px] bg-[#633CFF] text-white font-semibold hover:bg-[#532DD1] transition`}
-        aria-label="Share links"
-      >
-        {label}
-      </button>
-
-      <button
-        onClick={() => copyToClipboard(shareUrl)}
-        className={`${
-          small ? "px-3 py-2 text-sm" : "px-3 py-2"
-        } rounded-[8px] border border-gray-300 hover:bg-gray-50 transition`}
-        aria-label="Copy share link"
-      >
-        Copy Link
-      </button>
-    </div>
+    <button
+      onClick={handleShare}
+      className={`${
+        small ? "w-[133px] h-[46px] text-sm" : "w-[133px] h-[46px] text-[16px]"
+      } rounded-[8px] bg-[#633CFF] text-white font-semibold hover:bg-[#532DD1] transition whitespace-nowrap`}
+      aria-label="Share link"
+    >
+      {label}
+    </button>
   );
 }
