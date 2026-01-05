@@ -62,9 +62,20 @@ export default function ShareLinksButton({
     };
 
     try {
+      // Record the time when share sheet opens
+      const shareStartTime = Date.now();
+
       await navigator.share(shareData);
-      // Show success toast after successful share
-      toast.success("Link shared successfully");
+
+      // Calculate how long the share sheet was open
+      const shareTime = Date.now() - shareStartTime;
+
+      // If the share sheet was open for more than 1 second,
+      // assume the user actually shared (not just cancelled immediately)
+      if (shareTime > 1000) {
+        toast.success("Link shared successfully");
+      }
+      // If closed quickly (< 1 second), they probably just cancelled - no toast
     } catch (err) {
       console.error("Share error:", err.name, err.message);
 
