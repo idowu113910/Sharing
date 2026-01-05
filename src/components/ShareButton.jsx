@@ -28,14 +28,31 @@ export default function ShareLinksButton({
     : `${origin}${previewPath}`;
 
   const handleShare = async () => {
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    const isHttps = window.location.protocol === "https:";
+    // DETAILED DEBUGGING
+    const debugInfo = {
+      userAgent: navigator.userAgent,
+      hasShare: !!navigator.share,
+      hasCanShare: !!navigator.canShare,
+      platform: navigator.platform,
+      protocol: window.location.protocol,
+      hostname: window.location.hostname,
+      shareUrlLength: shareUrl.length,
+      shareUrl: shareUrl,
+    };
 
-    // Check if Web Share API is supported AND we're in a secure context
-    if (!navigator.share || (isLocalhost && !isHttps)) {
-      console.log("Web Share not available - using clipboard fallback");
+    console.log("=== SHARE DEBUG INFO ===", debugInfo);
+
+    // Show alert with debug info on mobile
+    alert(`Debug Info:
+Share API: ${debugInfo.hasShare ? "YES" : "NO"}
+Protocol: ${debugInfo.protocol}
+Browser: ${debugInfo.userAgent.substring(0, 50)}...
+URL Length: ${debugInfo.shareUrlLength}`);
+
+    // Check if Web Share API is supported
+    if (!navigator.share) {
+      console.log("❌ Web Share API NOT supported");
+      alert("Web Share API is NOT supported on this browser");
       try {
         await navigator.clipboard.writeText(shareUrl);
         toast.success("Link copied to clipboard");
@@ -45,6 +62,9 @@ export default function ShareLinksButton({
       }
       return;
     }
+
+    console.log("✅ Web Share API IS supported!");
+    alert("Web Share API IS supported! Attempting to share...");
 
     // Build the name from profile
     const profileName = effectiveProfile
@@ -61,29 +81,46 @@ export default function ShareLinksButton({
       url: shareUrl,
     };
 
+    console.log("Share data:", shareData);
+
+    // Check if can share this specific data
+    if (navigator.canShare) {
+      const canShareResult = navigator.canShare(shareData);
+      console.log("Can share this data?", canShareResult);
+      alert(`Can share: ${canShareResult}`);
+
+      if (!canShareResult) {
+        alert("Cannot share this data format!");
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Link copied to clipboard");
+        } catch (err) {
+          toast.error("Could not copy link");
+        }
+        return;
+      }
+    }
+
     try {
-      // Record the time when share sheet opens
       const shareStartTime = Date.now();
 
+      console.log("🚀 Calling navigator.share()...");
       await navigator.share(shareData);
 
-      // Calculate how long the share sheet was open
       const shareTime = Date.now() - shareStartTime;
+      console.log("✅ Share completed! Time:", shareTime);
 
-      // If the share sheet was open for more than 1 second,
-      // assume the user actually shared (not just cancelled immediately)
       if (shareTime > 1000) {
         toast.success("Link shared successfully");
       }
-      // If closed quickly (< 1 second), they probably just cancelled - no toast
     } catch (err) {
-      console.error("Share error:", err.name, err.message);
+      console.error("❌ Share failed:", err);
+      alert(`Share error: ${err.name} - ${err.message}`);
 
       if (err.name === "AbortError") {
         console.log("User cancelled share");
-        // Do nothing when user cancels
       } else if (err.name === "NotAllowedError") {
-        console.log("Permission denied - falling back to copy");
+        console.log("Permission denied");
         try {
           await navigator.clipboard.writeText(shareUrl);
           toast.success("Link copied to clipboard");
@@ -91,7 +128,6 @@ export default function ShareLinksButton({
           toast.error("Could not copy link");
         }
       } else {
-        console.error("Unexpected error - falling back to copy");
         try {
           await navigator.clipboard.writeText(shareUrl);
           toast.success("Link copied to clipboard");
