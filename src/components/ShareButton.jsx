@@ -33,11 +33,6 @@ export default function ShareLinksButton({
       window.location.hostname === "127.0.0.1";
     const isHttps = window.location.protocol === "https:";
 
-    console.log("=== SHARE DEBUG ===");
-    console.log("Is localhost?", isLocalhost);
-    console.log("Is HTTPS?", isHttps);
-    console.log("navigator.share exists?", !!navigator.share);
-
     // Check if Web Share API is supported AND we're in a secure context
     if (!navigator.share || (isLocalhost && !isHttps)) {
       console.log("Web Share not available - using clipboard fallback");
@@ -66,18 +61,16 @@ export default function ShareLinksButton({
       url: shareUrl,
     };
 
-    console.log("Attempting to share:", shareData);
-
     try {
       await navigator.share(shareData);
-      console.log("✅ Share completed successfully");
-      toast.success("Shared successfully");
+      // Show success toast after successful share
+      toast.success("Link shared successfully");
     } catch (err) {
       console.error("Share error:", err.name, err.message);
 
       if (err.name === "AbortError") {
         console.log("User cancelled share");
-        // Do nothing
+        // Do nothing when user cancels
       } else if (err.name === "NotAllowedError") {
         console.log("Permission denied - falling back to copy");
         try {
