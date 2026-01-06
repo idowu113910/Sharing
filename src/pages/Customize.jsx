@@ -12,7 +12,8 @@ import { LuCircleUserRound } from "react-icons/lu";
 import hand2 from "../assets/hand 2.png";
 import iphone from "../assets/phone desktop.svg";
 import { TbBrandGithub } from "react-icons/tb";
-import { FaTwitter } from "react-icons/fa";
+
+import { FaXTwitter } from "react-icons/fa6";
 import { FaYoutube } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { IoLogoInstagram } from "react-icons/io";
@@ -142,7 +143,7 @@ const Customize = ({ value, onChange, linkId }) => {
   const getPlatformColor = (platform) => {
     const colors = {
       GitHub: "#1A1A1A",
-      Twitter: "#1DA1F2",
+      X: "#000000",
       LinkedIn: "#2D68FF",
       YouTube: "#EE3939",
       Facebook: "#1877F2",
@@ -156,7 +157,7 @@ const Customize = ({ value, onChange, linkId }) => {
   const getPlatformIcon = (platform) => {
     const icons = {
       GitHub: <TbBrandGithub className="w-4 h-4" />,
-      Twitter: <FaTwitter className="w-4 h-4" />,
+      X: <FaXTwitter className="w-4 h-4" />,
       LinkedIn: <FaLinkedin className="w-4 h-4" />,
       YouTube: <FaYoutube className="w-4 h-4" />,
       Facebook: <FaFacebook className="w-4 h-4" />,
@@ -171,7 +172,7 @@ const Customize = ({ value, onChange, linkId }) => {
   const getPlatformPlaceholder = (platform) => {
     const placeholders = {
       GitHub: "e.g. https://www.github.com/johnappleseed",
-      Twitter: "e.g. https://www.twitter.com/johnappleseed",
+      X: "e.g. https://www.x.com/johnappleseed",
       LinkedIn: "e.g. https://www.linkedin.com/in/johnappleseed",
       YouTube: "e.g. https://www.youtube.com/@johnappleseed",
       Facebook: "e.g. https://www.facebook.com/johnappleseed",
@@ -189,7 +190,7 @@ const Customize = ({ value, onChange, linkId }) => {
     YouTube: /^https?:\/\/(www\.)?youtube\.com\/.+$/i,
     Instagram: /^https?:\/\/(www\.)?instagram\.com\/.+$/i,
     WhatsApp: /^https?:\/\/(www\.)?wa\.me\/.+$/i,
-    Twitter: /^https?:\/\/(www\.)?twitter\.com\/.+$/i,
+    X: /^https?:\/\/(www\.)?x\.com\/.+$/i,
     "Frontend Mentor": /^https?:\/\/(www\.)?frontendmentor\.io\/profile\/.+$/i,
   };
 
@@ -205,7 +206,7 @@ const Customize = ({ value, onChange, linkId }) => {
       label: "Frontend Mentor",
       icon: <SiFrontendmentor />,
     },
-    { id: "Twitter", label: "Twitter", icon: <FaTwitter /> },
+    { id: "X", label: "X", icon: <FaXTwitter /> },
   ];
 
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -380,7 +381,7 @@ const Customize = ({ value, onChange, linkId }) => {
                   {link.platform === "WhatsApp" && <FaWhatsapp />}
                   {link.platform === "Facebook" && <FaFacebook />}
                   {link.platform === "Frontend Mentor" && <SiFrontendmentor />}
-                  {link.platform === "Twitter" && <FaTwitter />}
+                  {link.platform === "X" && <FaXTwitter />}
                 </div>
 
                 {/* Arrow button (acts as the toggler) */}
@@ -776,9 +777,6 @@ border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:b
           </div>
         </div>
       </div>
-
-
-      
     </div>
   );
 };

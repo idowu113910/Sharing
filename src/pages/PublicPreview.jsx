@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { decodePayloadFromUrl } from "../utils/Share.jsx";
 import { TbBrandGithub } from "react-icons/tb";
-import { FaTwitter } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { FaYoutube } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { IoLogoInstagram } from "react-icons/io";
@@ -25,7 +25,7 @@ const PublicPreview = () => {
   const getPlatformColor = (platform) => {
     const colors = {
       GitHub: "#1A1A1A",
-      Twitter: "#1DA1F2",
+      X: "#000000",
       LinkedIn: "#2D68FF",
       YouTube: "#EE3939",
       Facebook: "#1877F2",
@@ -38,7 +38,7 @@ const PublicPreview = () => {
   const getPlatformIcon = (platform) => {
     const icons = {
       GitHub: <TbBrandGithub className="w-4 h-4 text-white" />,
-      Twitter: <FaTwitter className="w-4 h-4 text-white" />,
+      X: <FaXTwitter className="w-4 h-4 text-white" />,
       LinkedIn: <FaLinkedin className="w-4 h-4 text-white" />,
       YouTube: <FaYoutube className="w-4 h-4 text-white" />,
       Facebook: <FaFacebook className="w-4 h-4 text-white" />,

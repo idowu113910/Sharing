@@ -13,7 +13,7 @@ import { useLocation } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import { useRef } from "react";
 import { TbBrandGithub } from "react-icons/tb";
-import { FaTwitter } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { FaYoutube } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { IoLogoInstagram } from "react-icons/io";
@@ -141,7 +141,7 @@ const ProfileDetails = () => {
   const getPlatformColor = (platform) => {
     const colors = {
       GitHub: "#1A1A1A",
-      Twitter: "#1DA1F2",
+      X: "#000000",
       LinkedIn: "#2D68FF",
       YouTube: "#EE3939",
       Facebook: "#1877F2",
@@ -155,7 +155,7 @@ const ProfileDetails = () => {
   const getPlatformIcon = (platform) => {
     const icons = {
       GitHub: <TbBrandGithub className="w-4 h-4" />,
-      Twitter: <FaTwitter className="w-4 h-4" />,
+      X: <FaXTwitter className="w-4 h-4" />,
       LinkedIn: <FaLinkedin className="w-4 h-4" />,
       YouTube: <FaYoutube className="w-4 h-4" />,
       Facebook: <FaFacebook className="w-4 h-4" />,
