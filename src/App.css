@@ -10,7 +10,6 @@
 html,
 body {
   overflow-x: hidden;
-
 }
 
 .phone-slide-in {
@@ -26,4 +25,16 @@ body {
   }
 }
 
-/* Remove scrollbar from entire page */
+@theme {
+  /* Mobile Range (320px to 480px) */
+  --breakpoint-mobile-min: 320px;
+  --breakpoint-mobile-max: 480px;
+  /* Tablet / iPad Range (481px to 1024px) */
+  --breakpoint-tablet-min: 481px;
+  --breakpoint-tablet-max: 1024px;
+  /* Laptop Range (1025px to 1366px) */
+  --breakpoint-laptop-min: 1025px;
+  --breakpoint-laptop-max: 1366px;
+  /* Desktop / Large Monitor Range (1367px and above) */
+  --breakpoint-desktop: 1367px;
+}

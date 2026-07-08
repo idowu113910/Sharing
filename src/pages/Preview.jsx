@@ -5,10 +5,8 @@ import { FaYoutube } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { IoLogoInstagram } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
-import { GoLink } from "react-icons/go";
 import { FaFacebook } from "react-icons/fa6";
 import { FaArrowRight } from "react-icons/fa";
-import { LuLink } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import ShareLinksButton from "../components/ShareButton";
 
@@ -16,7 +14,6 @@ const Preview = ({ hideButtons = false }) => {
   const navigate = useNavigate();
   const [savedProfile, setSavedProfile] = useState(null);
   const [savedLinks, setSavedLinks] = useState([]);
-  const [copiedLinkId, setCopiedLinkId] = useState(null);
 
   useEffect(() => {
     const profileData = localStorage.getItem("devlinks_profileDetails");
@@ -52,63 +49,48 @@ const Preview = ({ hideButtons = false }) => {
     return icons[platform];
   };
 
-  const handleCopyLink = async (link) => {
-    try {
-      await navigator.clipboard.writeText(link.url);
-      setCopiedLinkId(link.id);
-      setTimeout(() => setCopiedLinkId(null), 3500);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-    }
-  };
-
   const handleBackToEditor = () => {
     navigate("/");
   };
 
   return (
-    <div className="md:h-[1024px] h-[848px] bg-gray-50 pb-20 relative">
-      {/* Blue Background */}
-      <div className="md:bg-[#633CFF] md:h-[357px] md:rounded-bl-[32px] md:rounded-br-[32px] md:overflow-hidden relative"></div>
+    <div className="min-h-dvh w-full bg-gray-50 pb-20 relative overflow-x-hidden">
+      {/* Banner + action bar share one grid cell, so the bar overlaps the
+          banner reliably at every screen size with no absolute-position or
+          negative-margin math involved. */}
+      <div className="grid">
+        {/* Blue Background */}
+        <div className="[grid-area:1/1] tablet-min:bg-[#633CFF] tablet-min:h-[240px] laptop-min:h-[300px] desktop:h-[357px] tablet-min:rounded-bl-[32px] tablet-min:rounded-br-[32px] tablet-min:overflow-hidden" />
 
-      {/* Conditional Buttons */}
-      {!hideButtons && (
-        <div className="hidden md:flex w-[335px] md:w-[720px] lg:w-[1300px] md:h-[78px] gap-[16px] justify-between md:p-6 mx-auto pt-3 md:pt-4 border-[1px] border-white rounded-[8px] bg-white md:relative bottom-[340px]">
-          <button
-            onClick={handleBackToEditor}
-            className="w-[159.5px] h-[46px] rounded-[8px] border-[1px] py-[11px] px-[27px] text-[#633CFF] text-[8px] md:text-[14px] font-semibold border-[#633CFF] hover:bg-[#EFEBFF] transition-colors cursor-pointer whitespace-nowrap"
-          >
-            Back to Editor
-          </button>
+        {/* Top action bar (Back + Share) */}
+        {!hideButtons && (
+          <div className="[grid-area:1/1] self-start justify-self-center z-20 w-full px-4 tablet-min:px-6 mt-4 tablet-min:mt-[40px] max-w-[420px] tablet-min:max-w-[720px] laptop-min:max-w-[1150px] desktop:max-w-[1300px]">
+            <div className="flex items-center justify-between gap-3 w-full tablet-min:gap-[16px] tablet-min:p-6 tablet-min:pt-4 tablet-min:border-[1px] tablet-min:border-white tablet-min:rounded-[8px] tablet-min:bg-white">
+              <button
+                onClick={handleBackToEditor}
+                className="min-w-[100px] tablet-min:w-[159.5px] h-10 tablet-min:h-[46px] rounded-[8px] border-[1px] border-[#633CFF]
+                bg-white text-[#633CFF] text-[13px] tablet-min:text-[14px] font-semibold px-3 tablet-min:px-[27px] py-2 tablet-min:py-[11px]
+                whitespace-nowrap hover:bg-[#EFEBFF] transition-colors cursor-pointer"
+                aria-label="Back to Editor"
+              >
+                Back to Editor
+              </button>
 
-          <ShareLinksButton links={savedLinks} />
-        </div>
-      )}
-
-      {/* Mobile-only buttons (sm and below) */}
-      {!hideButtons && (
-        <div className="md:hidden w-full px-4 mt-4">
-          <div className="flex items-center justify-between gap-3 max-w-[420px] mx-auto">
-            <button
-              onClick={handleBackToEditor}
-              className="min-w-[110px] h-10 rounded-[8px] border-[1px] border-[#633CFF] bg-white text-[#633CFF] text-sm font-semibold px-3 py-2 whitespace-nowrap hover:bg-[#EFEBFF] transition-colors"
-              aria-label="Back to Editor"
-            >
-              Back
-            </button>
-
-            {/* ShareLinksButton small variant — it already accepts `small` prop */}
-            <div className="flex items-center">
               <ShareLinksButton links={savedLinks} profile={savedProfile} />
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Profile Card */}
-      <div className="md:rounded-[24px] md:border-[1px] md:border-[#D9D9D9] md:w-[349px] md:mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-[150px] md:bg-white md:shadow-lg w-[335px] mx-auto mt-8 md:mt-20 lg:mt-10 bg-white rounded-[24px] p-6 pb-10 z-10">
+      <div
+        className="w-[90%] max-w-[349px] mx-auto mt-8 tablet-min:mt-20 laptop-min:mt-10
+        bg-white rounded-[24px] p-6 pb-10 z-10
+        tablet-min:border-[1px] tablet-min:border-[#D9D9D9] tablet-min:shadow-lg
+        tablet-min:absolute tablet-min:left-1/2 tablet-min:-translate-x-1/2 tablet-min:top-[150px]"
+      >
         {/* Profile Image */}
-        <div className="w-[104px] h-[104px] rounded-full overflow-hidden bg-gray-200 mx-auto mt-12 md:mt-10">
+        <div className="w-[96px] h-[96px] tablet-min:w-[104px] tablet-min:h-[104px] rounded-full overflow-hidden bg-gray-200 mx-auto mt-12 tablet-min:mt-10">
           {savedProfile?.profileImage && (
             <img
               src={savedProfile.profileImage}
@@ -120,42 +102,34 @@ const Preview = ({ hideButtons = false }) => {
 
         {/* Profile Info */}
         <div className="flex flex-col items-center mt-8">
-          <p className="font-bold text-[32px] text-[#333333]">
+          <p className="font-bold text-[24px] tablet-min:text-[32px] text-[#333333] text-center">
             {savedProfile?.firstName} {savedProfile?.lastName}
           </p>
-          <p className="text-[#737373] font-normal text-[16px] mt-3 md:mt-1.5">
+          <p className="text-[#737373] font-normal text-[14px] tablet-min:text-[16px] mt-3 tablet-min:mt-1.5">
             {savedProfile?.email}
           </p>
         </div>
 
-        {/* Social Links */}
-        <div className="flex flex-col items-center mt-14 md:mt-12 gap-y-[20px]">
+        {/* Social Links — tapping opens the saved URL */}
+        <div className="flex flex-col items-center mt-14 tablet-min:mt-12 gap-y-[20px]">
           {savedLinks.map((link) => (
-            <div
+            <a
               key={link.id}
-              onClick={() => handleCopyLink(link)}
-              className="flex items-center rounded-[8px] w-[237px] h-[56px] p-[16px] gap-[8px] cursor-pointer hover:shadow-md transition-all hover:scale-105"
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center rounded-[8px] w-full max-w-[237px] h-[56px] p-[16px] gap-[8px] cursor-pointer hover:shadow-md transition-all hover:scale-105"
               style={{ backgroundColor: getPlatformColor(link.platform) }}
             >
               {getPlatformIcon(link.platform)}
-              <p className="text-[16px] font-normal flex-1 text-white">
+              <p className="text-[16px] font-normal flex-1 text-white text-left">
                 {link.platform}
               </p>
               <FaArrowRight className="w-[10.56px] h-[10.56px] text-white" />
-            </div>
+            </a>
           ))}
         </div>
       </div>
-
-      {/* Fixed Copy Success Message */}
-      {copiedLinkId && (
-        <div className="fixed bottom-[25px] left-3 lg:left-125 md:left-50 md:bottom-[2px] z-50">
-          <div className="bg-[#333333] text-white text-[14px] flex gap-[8px] font-medium px-6 py-3 rounded-[12px] shadow-[0_4px_4px_#0000001A] w-[350px]">
-            <LuLink className="text-[#737373] w-[15.63px] h-[15.63px] mt-1" />
-            The link has been copied to your clipboard!
-          </div>
-        </div>
-      )}
     </div>
   );
 };

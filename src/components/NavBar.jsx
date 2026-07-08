@@ -20,21 +20,21 @@ const NavBar = () => {
   };
 
   return (
-    <>
-      {/* Mobile Navbar */}
-      <div className="flex gap-[8px] justify-between px-[16px] py-[24px] block md:hidden">
-        <img src={dev} alt="" className="w-[32px] h-[32px]" />
+    <div className="w-full">
+      {/* Mobile layout (below tablet-min) */}
+      <div className="flex items-center justify-between gap-[8px] px-4 py-5 tablet-min:hidden">
+        <img src={dev} alt="" className="w-[28px] h-[28px] flex-shrink-0" />
 
         <div className="flex mx-auto gap-[8px]">
           {/* Links */}
           <div
-            className={`py-[11px] px-[27px] rounded-[8px] cursor-pointer ${
+            className={`py-[10px] px-[20px] rounded-[8px] cursor-pointer ${
               isLinksPage ? "bg-[#EFEBFF] border border-[#633CFF]" : ""
             }`}
             onClick={() => handleNavigate("/")}
           >
             <HiLink
-              className={`w-[20px] h-[20px] ${
+              className={`w-[18px] h-[18px] ${
                 isLinksPage ? "text-[#633CFF]" : "text-[#737373]"
               }`}
             />
@@ -42,13 +42,13 @@ const NavBar = () => {
 
           {/* Profile */}
           <div
-            className={`py-[11px] px-[27px] rounded-[8px] cursor-pointer ${
+            className={`py-[10px] px-[20px] rounded-[8px] cursor-pointer ${
               isProfilePage ? "bg-[#EFEBFF] border border-[#633CFF]" : ""
             }`}
             onClick={() => handleNavigate("/profiledetails")}
           >
             <LuCircleUserRound
-              className={`w-[20px] h-[20px] ${
+              className={`w-[18px] h-[18px] ${
                 isProfilePage ? "text-[#633CFF]" : "text-[#737373]"
               }`}
             />
@@ -56,53 +56,59 @@ const NavBar = () => {
         </div>
 
         <Eye
-          className="cursor-pointer border border-[#633CFF] w-[52px] h-[42px] rounded-[8px] py-[11px] px-[16px] text-[#633CFF]"
+          className="cursor-pointer border border-[#633CFF] w-[44px] h-[38px] rounded-[8px] py-[9px] px-[12px] text-[#633CFF] flex-shrink-0"
           onClick={() => handleNavigate("/preview")}
         />
       </div>
 
-      {/* Tablet & Desktop Navbar */}
-      <div className="hidden md:block">
-        <div className="flex justify-between py-[16px] px-[24px] w-full mt-4">
-          <img src={dev2} alt="" className="w-[146px] h-[32px]" />
+      {/* Tablet and up layout */}
+      <div className="hidden tablet-min:flex items-center justify-between py-4 px-4 tablet-min:px-6 laptop-min:px-10 desktop:px-16 w-full mt-2 tablet-min:mt-4">
+        <img
+          src={dev2}
+          alt=""
+          className="w-[120px] h-[26px] laptop-min:w-[146px] laptop-min:h-[32px] flex-shrink-0"
+        />
 
-          <div className="flex gap-[16px] items-center">
-            {/* Links */}
-            <div
-              onClick={() => handleNavigate("/")}
-              className={`flex items-center gap-[8px] px-[27px] py-[11px] rounded-[8px] cursor-pointer ${
-                isLinksPage
-                  ? "bg-[#EFEBFF] text-[#633CFF]"
-                  : "text-[#737373] hover:text-[#633CFF]"
-              }`}
-            >
-              <HiLink className="w-[20px] h-[20px]" />
-              <span className="font-semibold">Links</span>
-            </div>
-
-            {/* Profile */}
-            <div
-              onClick={() => handleNavigate("/profiledetails")}
-              className={`flex items-center gap-[8px] px-[27px] py-[11px] rounded-[8px] cursor-pointer ${
-                isProfilePage
-                  ? "bg-[#EFEBFF] text-[#633CFF]"
-                  : "text-[#737373] hover:text-[#633CFF]"
-              }`}
-            >
-              <LuCircleUserRound className="w-[18px] h-[18px]" />
-              <span className="font-semibold">Profile Details</span>
-            </div>
+        <div className="flex gap-2 laptop-min:gap-[16px] items-center">
+          {/* Links */}
+          <div
+            onClick={() => handleNavigate("/")}
+            className={`flex items-center gap-[6px] laptop-min:gap-[8px] px-3 laptop-min:px-[27px] py-2 laptop-min:py-[11px] rounded-[8px] cursor-pointer ${
+              isLinksPage
+                ? "bg-[#EFEBFF] text-[#633CFF]"
+                : "text-[#737373] hover:text-[#633CFF]"
+            }`}
+          >
+            <HiLink className="w-[18px] h-[18px] laptop-min:w-[20px] laptop-min:h-[20px] flex-shrink-0" />
+            <span className="font-semibold text-[14px] laptop-min:text-[16px] whitespace-nowrap">
+              Links
+            </span>
           </div>
 
-          <button
-            onClick={() => handleNavigate("/preview")}
-            className="border border-[#633CFF] px-[27px] py-[11px] rounded-[8px] text-[#633CFF] font-semibold hover:bg-[#EFEBFF]"
+          {/* Profile */}
+          <div
+            onClick={() => handleNavigate("/profiledetails")}
+            className={`flex items-center gap-[6px] laptop-min:gap-[8px] px-3 laptop-min:px-[27px] py-2 laptop-min:py-[11px] rounded-[8px] cursor-pointer ${
+              isProfilePage
+                ? "bg-[#EFEBFF] text-[#633CFF]"
+                : "text-[#737373] hover:text-[#633CFF]"
+            }`}
           >
-            Preview
-          </button>
+            <LuCircleUserRound className="w-[16px] h-[16px] laptop-min:w-[18px] laptop-min:h-[18px] flex-shrink-0" />
+            <span className="font-semibold text-[14px] laptop-min:text-[16px] whitespace-nowrap">
+              Profile Details
+            </span>
+          </div>
         </div>
+
+        <button
+          onClick={() => handleNavigate("/preview")}
+          className="border border-[#633CFF] px-4 laptop-min:px-[27px] py-2 laptop-min:py-[11px] rounded-[8px] text-[#633CFF] font-semibold text-[14px] laptop-min:text-[16px] hover:bg-[#EFEBFF] whitespace-nowrap flex-shrink-0"
+        >
+          Preview
+        </button>
       </div>
-    </>
+    </div>
   );
 };
 
