@@ -15,12 +15,58 @@ import toast from "react-hot-toast";
 
 const ProfileDetails = () => {
   const navigate = useNavigate();
+  const inputRef = useRef(null);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
+
+  const [savedProfile, setSavedProfile] = useState(null);
+  const [savedLinks, setSavedLinks] = useState([]);
+
   const [errors, setErrors] = useState({});
   const [saveMessage, setSaveMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Load profile and links on initial mount
+  useEffect(() => {
+    const saved = localStorage.getItem("devlinks_savedLinks");
+    if (saved) {
+      setSavedLinks(JSON.parse(saved));
+    }
+
+    const rawProfile = localStorage.getItem("devlinks_profileDetails");
+    if (rawProfile) {
+      const parsed = JSON.parse(rawProfile);
+      setSavedProfile(parsed);
+      setFirstName(parsed.firstName || "");
+      setLastName(parsed.lastName || "");
+      setEmail(parsed.email || "");
+      setProfileImage(parsed.profileImage || null);
+    } else {
+      // Fallback for profile image if saved separately
+      const img = localStorage.getItem("devlinks_profileImage");
+      if (img) setProfileImage(img);
+    }
+  }, []);
+
+  const openPicker = () => {
+    inputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64Image = ev.target.result;
+      setProfileImage(base64Image);
+      localStorage.setItem("devlinks_profileImage", base64Image);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -33,40 +79,35 @@ const ProfileDetails = () => {
       if (!firstName.trim()) newErrors.firstName = "Can't be empty";
       if (!lastName.trim()) newErrors.lastName = "Can't be empty";
       if (!email.trim()) newErrors.email = "Can't be empty";
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (email && !emailRegex.test(email)) newErrors.email = "Invalid email";
+      if (email && !emailRegex.test(email)) {
+        newErrors.email = "Invalid email";
+      }
+
       setErrors(newErrors);
 
       if (Object.keys(newErrors).length > 0) {
-        console.warn("Validation failed, not saving", newErrors);
         toast.error("Please fix the errors before saving");
         return;
       }
 
-      // NOTE: this page only saves profile details (name/email/image).
-      // It must NOT touch "devlinks_savedLinks" — that's owned entirely
-      // by the Customize page. Overwriting it here was the bug that
-      // clobbered a properly-saved WhatsApp/etc. link back to the
-      // draft list's default "GitHub" placeholder.
-      try {
-        const profileObj = {
-          firstName,
-          lastName,
-          email,
-          profileImage: profileImage || null,
-        };
-        localStorage.setItem(
-          "devlinks_profileDetails",
-          JSON.stringify(profileObj),
-        );
-        setSavedProfile(profileObj);
-        toast.success("Profile Updated Successfully");
-        success = true;
-        navigate("/preview");
-      } catch (err) {
-        console.error("Error saving profile details:", err);
-        toast.error("Failed to save profile details");
-      }
+      const profileObj = {
+        firstName,
+        lastName,
+        email,
+        profileImage: profileImage || null,
+      };
+
+      localStorage.setItem(
+        "devlinks_profileDetails",
+        JSON.stringify(profileObj),
+      );
+      setSavedProfile(profileObj);
+      toast.success("Profile Updated Successfully");
+      success = true;
+
+      navigate("/preview");
     } catch (err) {
       console.error("Unexpected error in handleSave:", err);
       toast.error("An unexpected error occurred");
@@ -76,30 +117,10 @@ const ProfileDetails = () => {
         setTimeout(() => {
           setSaveMessage("Your changes have been successfully saved!");
           setTimeout(() => setSaveMessage(""), 3000);
-        }, 3000);
+        }, 500);
       }
     }
   };
-
-  const inputRef = useRef(null);
-
-  function openPicker() {
-    inputRef.current?.click();
-  }
-
-  const [savedLinks, setSavedLinks] = useState([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("devlinks_savedLinks");
-    if (saved) {
-      setSavedLinks(JSON.parse(saved));
-    }
-
-    const profileData = localStorage.getItem("devlinks_profileDetails");
-    if (profileData) {
-      setSavedProfile(JSON.parse(profileData));
-    }
-  }, []);
 
   const getPlatformColor = (platform) => {
     const colors = {
@@ -127,37 +148,6 @@ const ProfileDetails = () => {
     return icons[platform];
   };
 
-  const [profileImage, setProfileImage] = useState(
-    localStorage.getItem("devlinks_profileImage") || null,
-  );
-
-  const handleFileChangee = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setProfileImage(ev.target.result);
-      localStorage.setItem("devlinks_profileImage", ev.target.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const [savedProfile, setSavedProfile] = useState(() => {
-    const raw = localStorage.getItem("devlinks_profileDetails");
-    return raw ? JSON.parse(raw) : null;
-  });
-
-  useEffect(() => {
-    const img = localStorage.getItem("devlinks_profileImage");
-    if (img) {
-      setProfileImage(img);
-    }
-
-    const raw = localStorage.getItem("devlinks_profileDetails");
-    if (raw) setSavedProfile(JSON.parse(raw));
-  }, []);
-
   return (
     <div className="min-h-dvh w-full bg-white overflow-x-hidden">
       <NavBar />
@@ -181,40 +171,33 @@ const ProfileDetails = () => {
             </h2>
 
             <div className="flex flex-col tablet-min:flex-row items-start gap-4 tablet-min:gap-6">
-              {/* Upload box */}
               <div
                 onClick={openPicker}
-                className="rounded-[12px] w-[160px] h-[160px] tablet-min:w-[193px] tablet-min:h-[193px] bg-[#EFEBFF]
-       flex items-center justify-center cursor-pointer overflow-hidden relative group flex-shrink-0"
+                className="rounded-[12px] w-[160px] h-[160px] tablet-min:w-[193px] tablet-min:h-[193px] bg-[#EFEBFF] flex items-center justify-center cursor-pointer overflow-hidden relative group flex-shrink-0"
               >
                 <input
                   ref={inputRef}
                   type="file"
                   accept="image/png,image/jpeg"
                   className="hidden"
-                  onChange={handleFileChangee}
+                  onChange={handleFileChange}
                 />
 
-                {!profileImage && (
+                {!profileImage ? (
                   <div className="text-[#633CFF] flex flex-col items-center justify-center gap-y-[8px]">
                     <PiImage className="w-[32px] h-[32px] tablet-min:w-[40px] tablet-min:h-[40px]" />
                     <p className="text-[14px] tablet-min:text-[16px] font-semibold">
                       + Upload Image
                     </p>
                   </div>
-                )}
-
-                {profileImage && (
+                ) : (
                   <div className="w-full h-full relative">
                     <img
                       src={profileImage}
                       alt="Uploaded"
                       className="w-full h-full object-cover"
                     />
-                    <div
-                      className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                    >
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
                       <PiImage className="w-[28px] h-[28px] tablet-min:w-[32px] tablet-min:h-[32px] text-white" />
                       <p className="text-white text-[13px] tablet-min:text-[14px] font-medium">
                         Change Image
@@ -248,9 +231,9 @@ const ProfileDetails = () => {
                     if (errors.firstName)
                       setErrors({ ...errors, firstName: null });
                   }}
-                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px]
-              w-full shadow-[0_0_32px_0_rgba(217,217,217,0.5)]
-              ${errors.firstName ? "border-red-500" : "border-[#D9D9D9]"}`}
+                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px] w-full shadow-[0_0_32px_0_rgba(217,217,217,0.5)] ${
+                    errors.firstName ? "border-red-500" : "border-[#D9D9D9]"
+                  }`}
                 />
 
                 {errors.firstName && (
@@ -277,9 +260,9 @@ const ProfileDetails = () => {
                     if (errors.lastName)
                       setErrors({ ...errors, lastName: null });
                   }}
-                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px]
-              w-full
-              ${errors.lastName ? "border-red-500" : "border-[#D9D9D9]"}`}
+                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px] w-full ${
+                    errors.lastName ? "border-red-500" : "border-[#D9D9D9]"
+                  }`}
                 />
 
                 {errors.lastName && (
@@ -305,9 +288,9 @@ const ProfileDetails = () => {
                     setEmail(e.target.value);
                     if (errors.email) setErrors({ ...errors, email: null });
                   }}
-                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px]
-              w-full
-              ${errors.email ? "border-red-500" : "border-[#D9D9D9]"}`}
+                  className={`border-[1px] py-[12px] px-[16px] rounded-[8px] h-[48px] w-full ${
+                    errors.email ? "border-red-500" : "border-[#D9D9D9]"
+                  }`}
                 />
 
                 {errors.email && (
@@ -323,7 +306,7 @@ const ProfileDetails = () => {
           <div className="border-t border-t-[#D9D9D9] w-full mx-auto mt-10 flex items-center justify-center tablet-min:justify-end laptop-min:sticky laptop-min:bottom-0 laptop-min:z-50 laptop-min:bg-white laptop-min:py-4 laptop-min:shadow-[0_-2px_8px_rgba(0,0,0,0.05)] transition-opacity duration-300">
             <button
               onClick={handleSave}
-              disabled={isSaving || savedLinks.length === 0}
+              disabled={isSaving}
               className="mt-4 laptop-min:mt-0 w-full tablet-min:w-[140px] h-[46px] py-[11px] px-[27px] border-0 rounded-[8px] bg-[#633CFF] text-white font-semibold text-[16px] hover:bg-[#532DD1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? "Saving..." : "Save"}
@@ -331,7 +314,7 @@ const ProfileDetails = () => {
           </div>
         </div>
 
-        {/* Phone preview — desktop only, from 1360px upward, sits on the left */}
+        {/* Live Phone Preview (Desktop only) */}
         <div className="min-[1360px]:absolute bottom-[58px] left-0 hidden min-[1360px]:block">
           <div className="relative w-[307px] h-[631px]">
             <svg
@@ -351,25 +334,8 @@ const ProfileDetails = () => {
                 stroke="#737373"
                 fill="none"
               />
-
               <path
-                d="M 15,55 
-              Q 15,15 55,15 
-              L 95,15 
-              Q 100,15 100,20
-              Q 100,28 105,33
-              Q 110,38 120,38
-              L 187,38
-              Q 197,38 202,33
-              Q 207,28 207,20
-              Q 207,15 212,15
-              L 252,15 
-              Q 292,15 292,55 
-              L 292,576 
-              Q 292,616 252,616 
-              L 55,616 
-              Q 15,616 15,576 
-              Z"
+                d="M 15,55 Q 15,15 55,15 L 95,15 Q 100,15 100,20 Q 100,28 105,33 Q 110,38 120,38 L 187,38 Q 197,38 202,33 Q 207,28 207,20 Q 207,15 212,15 L 252,15 Q 292,15 292,55 L 292,576 Q 292,616 252,616 L 55,616 Q 15,616 15,576 Z"
                 stroke="#737373"
                 fill="none"
               />
@@ -377,8 +343,7 @@ const ProfileDetails = () => {
               {!profileImage && (
                 <circle cx="153.5" cy="120" r="48" fill="#EFEFEF" />
               )}
-
-              {!savedProfile?.firstName && (
+              {!firstName && (
                 <rect
                   x="83.5"
                   y="190"
@@ -388,8 +353,7 @@ const ProfileDetails = () => {
                   fill="#EFEFEF"
                 />
               )}
-
-              {!savedProfile?.email && (
+              {!email && (
                 <rect
                   x="103.5"
                   y="215"
@@ -464,42 +428,39 @@ const ProfileDetails = () => {
               </div>
             )}
 
-            {savedProfile?.firstName && (
+            {(firstName || lastName) && (
               <div
-                className="absolute text-[#333333] text-[18px] font-bold flex items-center justify-center"
+                className="absolute text-[#333333] text-[18px] font-bold flex items-center justify-center pointer-events-none"
                 style={{
                   top: "190px",
                   left: "83.5px",
                   width: "140px",
                   height: "14px",
-                  pointerEvents: "none",
                 }}
               >
-                {savedProfile.firstName} {savedProfile.lastName}
+                {firstName} {lastName}
               </div>
             )}
 
-            {savedProfile?.email && (
+            {email && (
               <div
-                className="absolute text-[#737373] text-[14px] flex items-center justify-center font-normal"
+                className="absolute text-[#737373] text-[14px] flex items-center justify-center font-normal pointer-events-none"
                 style={{
                   top: "215px",
                   left: "103.5px",
                   width: "100px",
                   height: "10px",
-                  pointerEvents: "none",
                 }}
               >
-                {savedProfile.email}
+                {email}
               </div>
             )}
 
             {savedLinks.map((link, index) => {
               const positions = [295, 355, 415, 475, 535];
-
               return (
                 <a
-                  key={link.id}
+                  key={link.id || index}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"

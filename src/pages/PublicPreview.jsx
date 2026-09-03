@@ -1,6 +1,4 @@
-// src/pages/PublicPreview.jsx
 import React, { useEffect, useState } from "react";
-import { decodePayloadFromUrl } from "../utils/Share.jsx";
 import { TbBrandGithub } from "react-icons/tb";
 import { FaXTwitter } from "react-icons/fa6";
 import { FaYoutube } from "react-icons/fa";
@@ -13,16 +11,18 @@ import { FaArrowRight } from "react-icons/fa";
 const PublicPreview = () => {
   const [profile, setProfile] = useState(null);
   const [links, setLinks] = useState([]);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const rawHash = window.location.hash || "";
-    const encoded = rawHash.replace(/^#data=/, "");
-    const decoded = decodePayloadFromUrl(encoded);
+    // Read shared keys
+    const savedProfile = localStorage.getItem("devlinks_profileDetails");
+    const savedLinks = localStorage.getItem("devlinks_savedLinks");
 
-    setProfile(decoded?.profile || null);
-    setLinks(Array.isArray(decoded?.links) ? decoded.links : []);
-    setLoaded(true);
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile));
+    }
+    if (savedLinks) {
+      setLinks(JSON.parse(savedLinks));
+    }
   }, []);
 
   const getPlatformColor = (platform) => {
@@ -40,85 +40,71 @@ const PublicPreview = () => {
 
   const getPlatformIcon = (platform) => {
     const icons = {
-      GitHub: <TbBrandGithub className="w-4 h-4 text-white" />,
-      X: <FaXTwitter className="w-4 h-4 text-white" />,
-      LinkedIn: <FaLinkedin className="w-4 h-4 text-white" />,
-      YouTube: <FaYoutube className="w-4 h-4 text-white" />,
-      Facebook: <FaFacebook className="w-4 h-4 text-white" />,
-      Instagram: <IoLogoInstagram className="w-4 h-4 text-white" />,
-      WhatsApp: <FaWhatsapp className="w-4 h-4 text-white" />,
+      GitHub: <TbBrandGithub className="w-5 h-5" />,
+      X: <FaXTwitter className="w-5 h-5" />,
+      LinkedIn: <FaLinkedin className="w-5 h-5" />,
+      YouTube: <FaYoutube className="w-5 h-5" />,
+      Facebook: <FaFacebook className="w-5 h-5" />,
+      Instagram: <IoLogoInstagram className="w-5 h-5" />,
+      WhatsApp: <FaWhatsapp className="w-5 h-5" />,
     };
     return icons[platform];
   };
 
-  if (!loaded) {
-    return (
-      <div className="w-full min-h-dvh flex items-center justify-center bg-gray-50">
-        <p className="text-slate-500 text-sm">Loading...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full min-h-dvh bg-gray-50 relative overflow-x-hidden">
-      {/* Blue background — scales progressively, hidden on the smallest mobile range */}
-      <div className="hidden tablet-min:block w-full bg-[#633CFF] h-[240px] laptop-min:h-[300px] desktop:h-[357px] rounded-bl-[32px] rounded-br-[32px] overflow-hidden" />
+    <div className="min-h-screen bg-[#FAFAFA] relative pb-16">
+      {/* Background Top Header Banner */}
+      <div className="bg-[#633CFF] h-[357px] w-full rounded-b-[32px]" />
 
-      {/* Card container */}
-      <div className="relative -mt-0 tablet-min:-mt-[180px] laptop-min:-mt-[230px] desktop:-mt-[280px] px-4 tablet-min:px-6 flex justify-center">
-        <div className="w-full max-w-[380px] tablet-min:max-w-md bg-white rounded-[24px] border border-[#D9D9D9] shadow-lg p-5 tablet-min:p-6 pb-8 tablet-min:pb-10 text-center">
-          {/* Profile image */}
-          <div className="w-[88px] h-[88px] tablet-min:w-[104px] tablet-min:h-[104px] rounded-full overflow-hidden bg-gray-200 mx-auto">
-            {profile?.profileImage && (
-              <img
-                src={profile.profileImage}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
+      {/* Main Profile Display Card */}
+      <div className="max-w-[349px] mx-auto bg-white rounded-[24px] shadow-lg p-10 -mt-[200px] flex flex-col items-center relative z-10">
+        {/* Profile Image */}
+        <div className="w-[104px] h-[104px] rounded-full border-4 border-[#633CFF] overflow-hidden bg-[#EFEFEF] mb-6">
+          {profile?.profileImage ? (
+            <img
+              src={profile.profileImage}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[#737373]">
+              No Image
+            </div>
+          )}
+        </div>
 
-          {/* Name / Email */}
-          <div className="mt-5 tablet-min:mt-6">
-            <p className="font-bold text-[20px] tablet-min:text-[24px] text-[#333]">
-              {profile?.firstName || profile?.lastName
-                ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim()
-                : "Shared Links"}
-            </p>
-            {profile?.email && (
-              <p className="text-[#737373] text-[13px] tablet-min:text-sm mt-1">
-                {profile.email}
-              </p>
-            )}
-          </div>
+        {/* Profile Name & Email */}
+        <h1 className="text-[32px] font-bold text-[#333333] text-center leading-tight mb-2">
+          {profile?.firstName || profile?.lastName
+            ? `${profile.firstName} ${profile.lastName}`
+            : "User Profile"}
+        </h1>
+        <p className="text-[#737373] text-[16px] mb-12 text-center">
+          {profile?.email || ""}
+        </p>
 
-          {/* Links */}
-          <div className="flex flex-col items-center mt-6 tablet-min:mt-8 gap-3 tablet-min:gap-4">
-            {links.length === 0 ? (
-              <div className="text-sm text-slate-500">
-                No links were shared.
+        {/* Links List */}
+        <div className="w-full flex flex-col gap-5">
+          {links.map((link, index) => (
+            <a
+              key={link.id || index}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-[56px] rounded-[12px] flex items-center justify-between px-4 text-white transition-transform hover:opacity-90"
+              style={{
+                backgroundColor: getPlatformColor(link.platform),
+              }}
+            >
+              <div className="flex items-center gap-3">
+                {getPlatformIcon(link.platform)}
+                <span className="font-semibold text-[16px]">
+                  {link.platform}
+                </span>
               </div>
-            ) : (
-              links.map((link, index) => (
-                <a
-                  key={link.id ?? `${link.url}-${index}`}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center rounded-[8px] w-full max-w-[320px] h-[52px] tablet-min:h-[56px] p-3 tablet-min:p-4 gap-3 hover:scale-105 transition-all"
-                  style={{ backgroundColor: getPlatformColor(link.platform) }}
-                >
-                  {getPlatformIcon(link.platform)}
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="text-white text-[14px] tablet-min:text-[16px] font-medium truncate">
-                      {link.platform}
-                    </div>
-                  </div>
-                  <FaArrowRight className="text-white w-4 h-4 flex-shrink-0" />
-                </a>
-              ))
-            )}
-          </div>
+              <FaArrowRight className="w-4 h-4" />
+            </a>
+          ))}
         </div>
       </div>
     </div>
